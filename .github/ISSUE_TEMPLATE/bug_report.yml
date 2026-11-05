@@ -1,0 +1,23 @@
+name: Bug report
+description: Laporkan perilaku yang salah
+title: "[Bug] "
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Perilaku yang terjadi
+      description: Jangan sertakan secret atau data pribadi.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Langkah reproduksi
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Perilaku yang diharapkan
+    validations:
+      required: true

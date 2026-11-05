@@ -1,0 +1,22 @@
+name: Feature request
+description: Usulkan kebutuhan pengguna
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Pengguna dan masalah
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Perilaku yang diusulkan
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kriteria penerimaan dan dampak pada MVP
+    validations:
+      required: true

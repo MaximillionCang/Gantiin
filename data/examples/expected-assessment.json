@@ -1,0 +1,33 @@
+{
+  "synthetic": true,
+  "example_only": true,
+  "claim_id": "claim_demo_001",
+  "claim_revision": 1,
+  "policy_version": "1.0.0",
+  "items": [
+    {
+      "item_id": "item_001",
+      "recommendation": "eligible",
+      "rule_ids": [
+        "P001"
+      ],
+      "reason": "The stated purpose matches seminar refreshments."
+    },
+    {
+      "item_id": "item_002",
+      "recommendation": "eligible",
+      "rule_ids": [
+        "P002"
+      ],
+      "reason": "The stated purpose matches stationery for seminar activities."
+    },
+    {
+      "item_id": "item_003",
+      "recommendation": "ineligible",
+      "rule_ids": [
+        "P003"
+      ],
+      "reason": "The claimant explicitly describes a personal purchase."
+    }
+  ]
+}

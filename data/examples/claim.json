@@ -1,0 +1,44 @@
+{
+  "synthetic": true,
+  "event_id": "evt_demo_001",
+  "event_budget_minor": 10000,
+  "currency": "USD",
+  "claim_id": "claim_demo_001",
+  "claim_revision": 1,
+  "claimant_id": "member_demo_001",
+  "policy_version": "1.0.0",
+  "receipt": {
+    "image_included": false,
+    "subtotal_minor": 8200,
+    "discount_minor": 0,
+    "tax_minor": 0,
+    "total_minor": 8200
+  },
+  "items": [
+    {
+      "item_id": "item_001",
+      "description": "Bottled water",
+      "quantity": 5,
+      "unit_price_minor": 500,
+      "line_total_minor": 2500,
+      "purpose": "Drinks for seminar participants"
+    },
+    {
+      "item_id": "item_002",
+      "description": "Whiteboard markers",
+      "quantity": 3,
+      "unit_price_minor": 400,
+      "line_total_minor": 1200,
+      "purpose": "Markers for seminar activities"
+    },
+    {
+      "item_id": "item_003",
+      "description": "Personal headphones",
+      "quantity": 1,
+      "unit_price_minor": 4500,
+      "line_total_minor": 4500,
+      "purpose": "My personal headphones"
+    }
+  ],
+  "expected_eligible_before_adjustments_minor": 3700
+}

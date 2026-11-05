@@ -1,0 +1,2 @@
+case_id,event_id,policy_version,item_description,purchase_purpose,expected_recommendation,expected_rule_ids,label_source,split
+TEMPLATE,REPLACE_EVENT,REPLACE_VERSION,REPLACE_ITEM,REPLACE_PURPOSE,,,human_review_required,unassigned
