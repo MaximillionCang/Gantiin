@@ -25,7 +25,7 @@ test('login fetches each page resource once and Settings expands without navigat
   await page.screenshot({path:'.cache/reports/browser/unified-settings-desktop.png',fullPage:true});
   await settings.focus();await page.keyboard.press('Enter');await expect(settings).toHaveAttribute('aria-expanded','false');expect(page.url()).toBe(before);
   await settings.click();await page.getByRole('link',{name:'Account',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Account',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Change password',exact:true})).toBeVisible();
   await expect(page.getByLabel('New password',{exact:true})).not.toHaveAttribute('minlength');
   await page.getByLabel('Current password',{exact:true}).fill('Synthetic-only-password42');await page.getByLabel('New password',{exact:true}).fill('A');
   await page.getByRole('form',{name:'Change password'}).getByRole('button',{name:'Change password',exact:true}).click();await expect(page.getByText('Password changed. Other website sessions have been signed out.',{exact:true})).toBeVisible();

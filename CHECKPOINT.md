@@ -1,5 +1,11 @@
 # Gantiin checkpoint
 
+## Teammate changes merged, 12 November 2026
+
+Integrated origin/main 4186319 (new branding, role-specific login artwork/slogan, dark/light preferences, Account password/email subpages) with local snapshot c134266. Settings remains one disclosure button and only submenu selections navigate. Short passwords and all performance work are preserved. Backend files match backup/before-teammate-4186319 byte-for-byte except the exact static-asset allowlist additions for incoming frontend assets. Private environment files and Google JSON hashes remain identical. Verification: syntax 68 modules, 116/116 backend tests, full 32/32 browser suite in 2.1 minutes. Desktop login and mobile Email screenshots inspected. No owner database, credentials, spreadsheet or provider operation was changed by this merge. Further requested backend/frontend folder cleanup follows in subsequent work.
+
+Render public /api/session was checked read-only: HTTP200, Sandbox, initialized:false, PayPal login enabled, AI/Sheets/PayPal configuration present. The remote database has no accounts yet; a private consistent database import is still required before the complete workflow can be used. This is not an actual AI, Google connectivity or payment test. The user requested committing final cleanup changes for their own push; do not push automatically.
+
 ## Latest completed changes: performance, Settings and judge accounts
 
 12 November 2026: implemented the owner's subsequent requests. Login renders once; independent event/page requests run concurrently; the workspace shell appears before API completion. Overview display reads no longer wait behind AI processing, and share concurrent reads without retaining stale balances. Payment allocation/authorization retains fresh budget and journal checks. Google metadata/formula reads run concurrently. Allowlisted public assets use in-memory loading, ETag/304 and gzip; private APIs and receipts stay no-store. Measured app.mjs 51,814 to 14,523 bytes over gzip, CSS 45,502 to 8,830; first image download is still required.

@@ -277,7 +277,7 @@ test('history search and numeric/date/name sorting combine, persist after refres
 });
 
 test('Healthy flat surfaces keep clear states, event context and generous upload size',async({page})=>{
-  await page.setViewportSize({width:1440,height:1000});await page.goto('/');const card=await page.locator('.login-card').evaluate(el=>({background:getComputedStyle(el).backgroundColor,blur:getComputedStyle(el).backdropFilter}));expect(card.background).toBe('rgb(255, 255, 255)');expect(card.blur).toBe('none');
+  await page.setViewportSize({width:1440,height:1000});await page.goto('/');const card=await page.locator('.login-card').evaluate(el=>({background:getComputedStyle(el).backgroundColor,blur:getComputedStyle(el).backdropFilter}));expect(card.background).toBe('rgb(18, 22, 38)');expect(card.blur).toBe('none');
   await login(page,'cmt.two@example.test');await expect(page.getByRole('heading',{name:'Submit a receipt',exact:true})).toBeVisible();expect((await page.locator('[data-dropzone]').boundingBox()).height).toBeGreaterThanOrEqual(360);expect(await page.locator('[data-dropzone]').evaluate(el=>getComputedStyle(el).borderStyle)).toBe('dashed');
   const upload=await page.locator('.receipt-submission').boundingBox(),zone=await page.locator('[data-dropzone]').boundingBox();expect(zone.x).toBe(upload.x);expect(zone.width).toBe(upload.width);expect(await page.locator('[data-dropzone]').evaluate(el=>getComputedStyle(el).backdropFilter)).toBe('none');
   expect(await page.locator('.sidebar').evaluate(el=>getComputedStyle(el).backdropFilter)).toBe('none');const event=await (await page.request.get('/api/event')).json();await expect(page.locator('.page-description')).toHaveText(event.name);await expect(page.locator('.submit-context')).toHaveCount(0);expect(zone.width).toBeCloseTo((await page.locator('.page').boundingBox()).width,0);const submit=page.getByRole('button',{name:'Submit',exact:true});await expect(submit.locator('svg')).toHaveCount(1);
@@ -313,7 +313,7 @@ test('QC: aligned Settings, readable tablet history, narrow screens and repeated
   await login(page,'treasurer@example.test','Changed-synthetic-password42');
   await openSettings(page);
   await expect(page.getByRole('form',{name:'Change password',exact:true})).toBeVisible();
-  await expect(page.locator('.account-profile')).toHaveCount(0);expect((await page.locator('.account-treasurer').boundingBox()).width).toBeGreaterThan(800);
+  await expect(page.locator('.account-profile')).toHaveCount(0);expect((await page.locator('.account-password').boundingBox()).width).toBeGreaterThan(800);
   await page.screenshot({path:'.cache/reports/browser/qc-settings-desktop.png',fullPage:true});
   await page.route('**/api/claims',route=>route.fulfill({json:[{id:'qc-synthetic-record',claimant:'Synthetic CMT One',created_at:'2026-11-06T04:00:00Z',requested_sen:9500,eligible_sen:4000,paid_sen:4000,unpaid_sen:0,coverage:'full',processing:'assessed',payment:{status:'succeeded',sync:'synced'}}]}));
   for(const width of [1440,1024,820,768,390,320]) {
