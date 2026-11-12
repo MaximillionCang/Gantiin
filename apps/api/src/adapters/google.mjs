@@ -14,7 +14,10 @@ export class GoogleSheets {
     } catch { throw new AppError('Google Sheets is unavailable or the service account lacks access. Check the dedicated spreadsheet configuration.',503,'sheets_failed'); }
   }
   async read(event) {
-    const metadata=await this.request('?fields=sheets(properties,protectedRanges)');
+    const [metadata,formula]=await Promise.all([
+      this.request('?fields=sheets(properties,protectedRanges)'),
+      this.request(`/values/${encodeURIComponent("'Event Budget'!D2")}?valueRenderOption=FORMULA`)
+    ]);
     for(const title of ['Event Budget','Transactions','Reimbursed Items']) {
       const sheet=metadata.sheets?.find(s=>s.properties.title===title);
       invariant(sheet?.protectedRanges?.some(r=>r.warningOnly!==true && r.range?.sheetId===sheet.properties.sheetId && r.range.startRowIndex===undefined && r.range.endRowIndex===undefined && r.range.startColumnIndex===undefined && r.range.endColumnIndex===undefined),`Protect the entire ${title} tab before processing payouts.`,503,'sheet_conflict');
@@ -25,7 +28,6 @@ export class GoogleSheets {
     const query=new URLSearchParams({valueRenderOption:'UNFORMATTED_VALUE'});
     ranges.forEach(r=>query.append('ranges',r));
     const data=await this.request(`/values:batchGet?${query}`);
-    const formula=await this.request(`/values/${encodeURIComponent("'Event Budget'!D2")}?valueRenderOption=FORMULA`);
     invariant(formula.values?.[0]?.[0]===BUDGET_FORMULA, 'Remaining-budget formula changed. Restore the protected formula before processing.',503,'sheet_conflict');
     const [budget,plans,history,ledger,itemRows,transactionHeader,itemHeader]=data.valueRanges.map(r=>r.values||[]);
     invariant(JSON.stringify(transactionHeader?.[0])===JSON.stringify(TRANSACTION_HEADERS)&&JSON.stringify(itemHeader?.[0])===JSON.stringify(ITEM_HEADERS),'Spreadsheet schema needs the documented payment/item recording upgrade. Do not initialize over existing data.',503,'sheet_conflict');

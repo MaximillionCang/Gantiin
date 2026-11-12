@@ -49,6 +49,37 @@ test('Treasurer spreadsheet shortcut uses only the configured Google ID and unav
   assert.equal(unavailable.value.budget_status,'unavailable');assert.equal(unavailable.value.available_sen,null);assert.equal(unavailable.value.remaining_sen,null);assert.equal(unavailable.value.budget_source,'google');
 });
 
+test('Overview budget does not wait for the processing queue and simultaneous display reads share work',async t=>{
+  const h=await harness(t),user=await h.login('treasurer@example.test');
+  let releaseQueue;const heldQueue=new Promise(resolve=>{releaseQueue=resolve;});
+  const processing=h.service.exclusive(()=>heldQueue);
+  try{
+    const result=await fetch(h.config.base+'/api/budget',{headers:{Cookie:user.cookie},signal:AbortSignal.timeout(2000)});
+    assert.equal((await result.json()).budget_status,'ready');
+  }finally{releaseQueue();await processing;}
+  const read=h.providers.sheets.read.bind(h.providers.sheets);let reads=0,release;
+  const held=new Promise(resolve=>{release=resolve;});
+  h.providers.sheets.read=async(...args)=>{reads++;await held;return read(...args);};
+  const first=h.service.overviewBudget(),second=h.service.overviewBudget();
+  release();await Promise.all([first,second]);assert.equal(reads,1);
+  await h.service.budget();assert.equal(reads,2);
+  await h.service.overviewBudget();assert.equal(reads,3);
+});
+
+test('only public allowlisted assets revalidate and compress; account APIs remain no-store',async t=>{
+  const h=await harness(t),user=await h.login('treasurer@example.test');
+  const image=await fetch(h.config.base+'/assets/login-finance-hd.png');await image.arrayBuffer();
+  assert.equal(image.status,200);assert.equal(image.headers.get('cache-control'),'public, no-cache');
+  const cached=await fetch(h.config.base+'/assets/login-finance-hd.png',{headers:{'If-None-Match':image.headers.get('etag')}});
+  assert.equal(cached.status,304);assert.equal((await cached.arrayBuffer()).byteLength,0);
+  const plain=await fetch(h.config.base+'/app.mjs',{headers:{'Accept-Encoding':'identity'}}),plainText=await plain.text();
+  const zipped=await fetch(h.config.base+'/app.mjs',{headers:{'Accept-Encoding':'gzip'}});
+  assert.equal(zipped.headers.get('content-encoding'),'gzip');assert.equal(await zipped.text(),plainText);
+  assert.ok(Number(zipped.headers.get('content-length'))<Number(plain.headers.get('content-length'))/2);
+  const declined=await fetch(h.config.base+'/app.mjs',{headers:{'Accept-Encoding':'gzip;q=0'}});await declined.text();assert.equal(declined.headers.get('content-encoding'),null);
+  const account=await h.request('/event',user);assert.equal(account.res.headers.get('cache-control'),'no-store');assert.equal(account.res.headers.get('etag'),null);
+});
+
 test('session cookies, CSRF, origin, expiry, logout and private response headers',async t=>{
   const h=await harness(t);const login=await h.request('/login',{method:'POST',data:{email:'cmt.one@example.test',password:'Synthetic-only-password42'}});
   const setCookie=login.res.headers.get('set-cookie');assert.match(setCookie,/HttpOnly/);assert.match(setCookie,/SameSite=Lax/);
@@ -166,10 +197,10 @@ test('Remember me creates a 30-day session; unchecked login uses a browser-sessi
   assert.equal((await h.request('/login/treasurer',{method:'POST',data:{password:'Synthetic-only-password42',remember:'true'}})).res.status,400);
 });
 
-test('local fixture recovery accepts A, revokes sessions, and leaves normal password rules unchanged',async t=>{
+test('short passwords work in Account and recovery while empty passwords remain invalid',async t=>{
   const h=await harness(t);const current=await h.login('cmt.one@example.test');
-  assert.throws(()=>passwordHash('A'));
-  assert.equal((await h.request('/password',{method:'POST',...current,data:{current_password:'Synthetic-only-password42',new_password:'A'}})).res.status,400);
+  assert.doesNotThrow(()=>passwordHash('A'));assert.throws(()=>passwordHash(''));
+  assert.equal((await h.request('/password',{method:'POST',...current,data:{current_password:'Synthetic-only-password42',new_password:'A'}})).res.status,200);
   assert.equal((await h.request('/session')).value.recovery_mode,'local-demo');
   const reset=await h.request('/demo/reset-password',{method:'POST',data:{role:'committee',email:'cmt.one@example.test',password:'A'}});
   assert.equal(reset.res.status,200);assert.equal(reset.value.password,undefined);

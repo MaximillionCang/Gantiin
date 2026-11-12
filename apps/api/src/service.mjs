@@ -80,6 +80,11 @@ export class Service {
     for(const p of payments.filter(p=>p.sync==='synced')) invariant(paymentReflected(p,sheet),'A synchronized sheet payment or item is missing. Allocation has stopped.',503,'sheet_conflict');
     return payments;
   }
+  async overviewBudget() {
+    // Share concurrent display reads only; authorization always calls budget() afresh.
+    if(!this.overviewRequest)this.overviewRequest=this.budget().finally(()=>{this.overviewRequest=null;});
+    return this.overviewRequest;
+  }
   async budget() {
     if(this.config.mode==='fixture'&&this.config.budgetSource!=='fixture') {
       const sheet=await new GoogleSheets(this.config).read(this.event());

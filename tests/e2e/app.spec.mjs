@@ -15,12 +15,9 @@ async function login(page,email='treasurer@example.test',pass=password) {
   await expect(page.getByRole('button',{name:'Sign out',exact:true,includeHidden:true})).toBeAttached();
 }
 async function openSettings(page,section='Account') {
-  const settings=page.getByRole('link',{name:'Settings',exact:true});
+  const settings=page.getByRole('button',{name:'Settings',exact:true});
   if(!await settings.isVisible())await page.getByRole('button',{name:'Menu',exact:true}).click();
-  await settings.click();
-  await expect(page).toHaveURL(/#\/settings\/account$/);
-  await expect(page.getByRole('heading',{name:'Account',exact:true})).toBeVisible();
-  if(!await page.getByRole('navigation',{name:'Settings sections'}).isVisible())await page.getByRole('button',{name:'Menu',exact:true}).click();
+  if(await settings.getAttribute('aria-expanded')!=='true')await settings.click();
   await page.getByRole('navigation',{name:'Settings sections'}).getByRole('link',{name:section,exact:true}).click();
 }
 async function noOverflow(page) {expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
@@ -33,7 +30,7 @@ async function sidebarReview(page) {
   await expect(page.locator('.sidebar').getByRole('img',{name:'Gantiin',exact:true})).toBeVisible();
   await expect(page.locator('.sidebar .mode-chip')).toHaveCount(0);
   const items=page.getByRole('navigation',{name:'Main navigation'}).getByRole('link');
-  await expect(items).toHaveCount(3);await expect(items.nth(1)).toHaveAccessibleName('History');await expect(items.nth(2)).toHaveAccessibleName('Settings');
+  await expect(items).toHaveCount(2);await expect(items.nth(1)).toHaveAccessibleName('History');await expect(page.getByRole('button',{name:'Settings',exact:true})).toBeVisible();
   if(await page.getByRole('button',{name:'Menu',exact:true}).isHidden())expect((await page.locator('.sidebar').boundingBox()).width).toBe(232);
   expect(await items.evaluateAll(links=>links.every(link=>{const label=link.querySelector('span').getBoundingClientRect(),row=link.getBoundingClientRect();return link.querySelector('svg')&&getComputedStyle(link).whiteSpace==='nowrap'&&label.right<=row.right-8;}))).toBe(true);
 }

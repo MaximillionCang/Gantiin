@@ -1,5 +1,11 @@
 # Current verification
 
+## Latest performance and judge-access verification
+
+12 November 2026: 65 modules pass syntax checks; 115/115 backend tests and the entire 26/26 browser suite pass. Tests verify public asset revalidation/compression, private API no-store, Overview returning while the processing queue is held, fresh subsequent budget reads, one set of page requests per login, concurrent event/data requests, Settings expansion without navigation, mobile/keyboard operation and short passwords. Desktop/mobile Settings screenshots were inspected.
+
+Public app.mjs transfers shrink from 51,814 to 14,523 bytes with gzip; CSS from 45,502 to 8,830. Login artwork can revalidate with an empty 304 response. These are payload measurements, not a claim about hosted latency or Render cold starts. Financial authorization reads are never served from a display cache. The owner's three Sandbox website passwords were changed as requested after a private consistent backup and verified without altering financial data. README judge-account publication was explicitly authorized. No external payment, paid inference or sheet write was performed. These updates supersede the older counts below; older manual release limitations remain.
+
 12 November 2026. This report supersedes older counts and interface descriptions. Historical provider evidence remains historical.
 
 - `npm.cmd run check`: passed, 64 modules.

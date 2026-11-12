@@ -2,6 +2,10 @@
 
 ## Current owner direction, 12 November 2026
 
+Latest owner changes: Settings is one disclosure button (text/icon/chevron are one target). Expanding it never navigates; only selecting a submenu opens a Settings page. The owner explicitly requested simple website passwords without minimum-length/complexity checks. Accept nonempty passwords up to 128 characters across Account, member creation and one-use recovery; preserve hashing, rate limits, session/origin checks and one-use reset grants. The three prepared Sandbox website passwords were changed at the owner's request and website/PayPal Sandbox judge credentials were explicitly authorized for README publication. These are not API secrets. Keep private .env, Google credentials and database backups ignored.
+
+Performance: public allowlisted assets use ETag revalidation and gzip, while APIs/receipts remain no-store. Overview display reads bypass the receipt-processing queue and share only concurrent requests; payment authorization still performs fresh budget reads and all journal validation. Do not reuse display data to authorize money. Node caches public asset bytes until server restart.
+
 This section supersedes older visual/recovery/demo descriptions below. Keep the blue/navy finance-photo login, curved white photo/form divider, unchanged transparent Ribbon logo, official local PayPal mark and white sidebar. Mobile hides the photo panel at 800px. Desktop sidebar supports an 80px collapsed rail; Settings has real nested destinations. Mobile navigation closes on route changes. Sign out has a red hover state.
 
 Current palette: primary #203548, action #174c72, canvas #f4f7fa, surface #ffffff, muted #556575, control border #718595, chart #69869b. Text and control contrast must remain accessible.

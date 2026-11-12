@@ -214,7 +214,7 @@ export function createApplication({config=configuration(),store=new Store(config
         }
         if(path==='/api/budget'&&method==='GET') {
           invariant(user.role==='treasurer','Treasurer access required.',403);
-          try{return send(200,{...await service.exclusive(()=>service.budget()),spreadsheet_url:spreadsheetUrl(),budget_status:'ready',budget_source:config.budgetSource});}
+          try{return send(200,{...await service.overviewBudget(),spreadsheet_url:spreadsheetUrl(),budget_status:'ready',budget_source:config.budgetSource});}
           catch{return send(200,{available_sen:null,remaining_sen:null,reserved_sen:null,spreadsheet_url:spreadsheetUrl(),budget_status:'unavailable',budget_source:config.budgetSource});}
         }
         if(path==='/api/integrations'&&method==='GET') {
@@ -239,7 +239,7 @@ export function createApplication({config=configuration(),store=new Store(config
       }
       invariant(method==='GET'||method==='HEAD','Method not allowed.',405);
       if(path==='/favicon.ico'){res.writeHead(204);return res.end();}
-      return await serveStatic(path,method,res);
+      return await serveStatic(path,method,res,req);
     } catch(error) {if(!res.headersSent) send(error.status||500,{error:error instanceof AppError?error.message:'Unexpected server error. The operation remains recorded; retry safely after checking setup.',code:error.code||'server_error'});else res.end();}
   });
   server.requestTimeout=90000;

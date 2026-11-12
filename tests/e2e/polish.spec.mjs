@@ -33,7 +33,7 @@ test('View and the upper-left Back arrow preserve CMT filters and lead to the ac
 test('Treasurer settings show concise and truthful configuration, persist event input and adapt at narrow widths',async({page})=>{
   await page.setViewportSize({width:1440,height:1000});await login(page,'Treasurer');
   await expect(page.locator('.recent-panel')).toHaveCount(0);await expect(page.getByRole('link',{name:'View history',exact:true})).toHaveCount(0);
-  await page.getByRole('link',{name:'Settings',exact:true}).click();await expect(page.locator('.account-profile')).toHaveCount(0);await expect(page.getByRole('form',{name:'Change password',exact:true})).toBeVisible();expect((await page.locator('.account-treasurer').boundingBox()).width).toBeGreaterThan(800);
+  await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('link',{name:'Account',exact:true}).click();await expect(page.locator('.account-profile')).toHaveCount(0);await expect(page.getByRole('form',{name:'Change password',exact:true})).toBeVisible();expect((await page.locator('.account-treasurer').boundingBox()).width).toBeGreaterThan(800);
   for(const width of [1440,768,375,320]) {await page.setViewportSize({width,height:900});await scan(page);await page.screenshot({path:`.cache/reports/browser/polish-account-${width}.png`,fullPage:true});}
   await page.setViewportSize({width:1440,height:1000});await page.getByRole('link',{name:'Connections',exact:true}).click();await expect(page.locator('.service-row')).toHaveCount(4);await expect(page.locator('.service-row').filter({hasText:'Google Sheets'})).toContainText('Simulated');await expect(page.locator('.service-row').filter({hasText:'PayPal sign-in'})).toContainText('Not configured');await expect(page.getByText('Recovery',{exact:true})).toHaveCount(0);
   await page.route('**/api/integrations',route=>route.fulfill({json:{budget_source:'google',google:true,ai:false,paypal:true,paypal_login:true}}));
@@ -49,7 +49,7 @@ test('Treasurer settings show concise and truthful configuration, persist event 
 test('PayPal linking shows the required input only when needed, preserves errors and discloses linked-account changes',async({page})=>{
   let linked=false;
   await page.route('**/api/session',async route=>{const response=await route.fetch(),session=await response.json();await route.fulfill({json:{...session,paypal_login:true,paypal_sender_configured:true,...(session.user?{user:{...session.user,paypal_linked:linked}}:{})}});});
-  await login(page,'Committee');await page.getByRole('link',{name:'Settings',exact:true}).click();
+  await login(page,'Committee');await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('link',{name:'Account',exact:true}).click();
   const form=page.locator('[data-form="paypal"]');await expect(form).toBeVisible();await expect(page.getByLabel('Website password',{exact:true})).toHaveValue('');
   await page.route('**/api/paypal/link',route=>route.fulfill({status:503,json:{error:'PayPal sign-in is temporarily unavailable.'}}));
   await page.getByLabel('Website password',{exact:true}).fill('Synthetic-only-password42');await form.getByRole('button',{name:'Link PayPal',exact:true}).click();await expect(form.getByRole('alert')).toContainText('PayPal sign-in is temporarily unavailable.');await expect(page.getByLabel('Website password',{exact:true})).toHaveValue('Synthetic-only-password42');await scan(page);

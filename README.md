@@ -2,7 +2,29 @@
 
 Event reimbursements in MYR. OCR reads the receipt; a separate Gemini Decider checks each item against the Treasurer's event name/description and approved spreadsheet evidence. Server validation controls money, recipients and automatic PayPal Sandbox payments.
 
-## Run locally
+## Judge access: PayPal Sandbox
+
+These are PayPal Sandbox test accounts provided for judging. Choose the matching role on the Gantiin login screen, select PayPal, and enter the Sandbox credentials on PayPal's official Sandbox sign-in page.
+
+| Role | PayPal Sandbox email | Sandbox password |
+|---|---|---|
+| Treasurer / Business sender | `sb-qwvxj53786518@business.example.com` | `8*ZEj).9` |
+| Committee member 1 (CMT 1) | `sb-ncudc53769756@personal.example.com` | `Bbe}K9@a` |
+| Committee member 2 (CMT 2) | `sb-hekyu53769840@personal.example.com` | `K/MaEhX5` |
+
+These accounts use simulated Sandbox funds. They are PayPal credentials, not Gantiin email/password sign-in credentials. PayPal sign-in must be enabled, its Return URL must match the current website, and each identity must match the recipient/sender assignment in the application's database. Treasurer PayPal consent has previously remained unresolved; use the operator-provided Gantiin Treasurer password if that provider flow is still unavailable. Do not publish real-account credentials, API secrets, or private configuration files.
+
+### Gantiin website sign-in
+
+| Role | Website email | Website password |
+|---|---|---|
+| Treasurer | `treasurer@example.test` | `Treasurer` |
+| CMT 1 | `cmt.one@example.test` | `CMT1` |
+| CMT 2 | `cmt.two@example.test` | `CMT2` |
+
+For Treasurer, choose the Treasurer tab and enter the password only. For Committee, choose Committee and enter the matching website email and password. These accounts belong to the owner's prepared Sandbox database; a fresh database creates its own credentials. Password forms have no minimum-length or complexity requirement; passwords must be nonempty and at most 128 characters. These deliberately public accounts are for judging this Sandbox prototype.
+
+## Local startup
 
 Use Node 24.16+ in the Node 24 line. From this folder:
 
@@ -13,7 +35,7 @@ npm.cmd start
 
 Open http://localhost:3000 with your existing credentials. Keep the populated .env; use .env.example only for a new installation. Do not reseed existing accounts. After a backend update, stop the old server normally, start it again and hard refresh the browser.
 
-For the isolated demo, choose Committee, then Try demo below PayPal. Use sample selects a ready-made receipt. Reset demo in History or Account deletes demo submissions and receipt files after confirmation, while retaining the demo account. One regular Treasurer remains; no demo Treasurer is created. The demo uses local simulated providers and its own private database beside the main database at demo/committee.sqlite. It persists until explicitly reset and never changes the main spreadsheet or calls Gemini/PayPal.
+The public login has no Try demo entry. Automated tests retain an isolated Committee demo with local simulated providers and a separate database. Its sample/reset controls never change the main spreadsheet or call Gemini/PayPal.
 
 The balance reads Google Sheets by default. An empty/unavailable sheet shows Unavailable, never a sample RM100. The owner has now prepared a Sandbox demo spreadsheet with RM1,776 funding and approved receipt references. Its RAB table records RM686 already spent outside Gantiin and RM1,090 available; the protected reimbursement budget uses that remaining allocation. the Demo tab forecasts all three eligible claims fully covered. Its Demo tab previews payments; only real confirmed Sandbox results belong in Transactions. Fixture payouts remain disabled against a Google budget.
 
@@ -26,7 +48,7 @@ For the owner's prepared Sandbox database, stop the existing server normally and
 - [Design](DESIGN.md), [design system](docs/design/system.md), [documentation index](docs/README.md)
 - [Demo event](demo/campus-career-day/EVENT.md), [receipt ZIP](demo/campus-career-day/receipts.zip), [expected results](demo/campus-career-day/expected-results.csv)
 
-Executable AI instructions: apps/api/src/ai/prompts/extraction.mjs and decider.mjs. Output schemas live beside them in ai/schemas/. Gemini uses one server-only key and configurable OCR/Decider model slots. Both current slots are gemini-3.5-flash-lite; read-only key/model access is verified, inference remains disabled until authorised. Never paste API keys into model-name fields.
+Executable AI instructions: apps/api/src/ai/prompts/extraction.mjs and decider.mjs. Output schemas live beside them in ai/schemas/. Gemini uses one server-only key and configurable OCR/Decider model slots. The owner has authorized receipt processing in the prepared Sandbox profile. Never paste API keys into model-name fields or publish private configuration.
 
 ## Checks
 

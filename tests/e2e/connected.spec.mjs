@@ -17,7 +17,7 @@ async function scan(page) {
 }
 test('Treasurer saves only event name and description, retaining versioning without manual rules',async({page})=>{
   await page.setViewportSize({width:1440,height:1000});await login(page,'treasurer');
-  await page.getByRole('link',{name:'Settings',exact:true}).click();await page.getByRole('link',{name:'Event Policy',exact:true}).click();
+  await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('link',{name:'Event Policy',exact:true}).click();
   const original=app.store.setting('event');await expect(page.locator('[data-rule],#ambiguity,#currency')).toHaveCount(0);
   const name=page.getByLabel('Event name',{exact:true}),description=page.getByLabel('Event description',{exact:true});
   await expect(name).toHaveValue('');await expect(description).toHaveValue('');
@@ -117,6 +117,6 @@ test('Treasurer opens the configured spreadsheet in a new tab and a missing Goog
     const opened=context.waitForEvent('page');await shortcut.click();const sheet=await opened;await expect(sheet.getByRole('heading',{name:'Spreadsheet destination'})).toBeVisible();await sheet.close();
     config.budgetSource='google';config.googleKey='fixture-unreadable-file';await page.reload();await expect(page.locator('.balance .amount')).toHaveText('Unavailable');await expect(page.locator('.balance')).not.toContainText('RM100.00');await scan(page);await page.screenshot({path:'.cache/reports/browser/google-budget-unavailable-desktop.png',fullPage:true});
     await page.setViewportSize({width:320,height:844});await scan(page);await expect(shortcut).toBeVisible();await page.screenshot({path:'.cache/reports/browser/google-budget-unavailable-mobile.png',fullPage:true});
-    await page.setViewportSize({width:1440,height:1000});await page.getByRole('link',{name:'Settings',exact:true}).click();await page.getByRole('link',{name:'Connections',exact:true}).click();await expect(page.locator('.service-row').filter({hasText:'Google Sheets'})).toContainText('Configured');
+    await page.setViewportSize({width:1440,height:1000});await page.getByRole('button',{name:'Settings',exact:true}).click();await page.getByRole('link',{name:'Connections',exact:true}).click();await expect(page.locator('.service-row').filter({hasText:'Google Sheets'})).toContainText('Configured');
   }finally{Object.assign(config,previous);}
 });

@@ -110,7 +110,7 @@ function shell() {
   if(current.startsWith('/settings/'))state.settingsOpen=true;
   app.innerHTML=`<div class="workspace ${state.sidebarCollapsed?'sidebar-collapsed':''}"><aside class="sidebar">
     <header><div class="sidebar-brand">${brandLogo()}</div><button class="sidebar-toggle" data-action="sidebar-collapse" aria-label="${state.sidebarCollapsed?'Expand':'Collapse'} sidebar" title="${state.sidebarCollapsed?'Expand':'Collapse'} sidebar">${navigationIcon('collapse')}</button><button class="menu-toggle" data-action="menu" aria-controls="navigation" aria-expanded="${state.menu}">Menu</button></header>
-    <div class="sidebar-navigation" id="navigation" ${!state.menu&&matchMedia('(max-width:800px)').matches?'hidden':''}><nav aria-label="Main navigation">${menuItems().map(([href,name])=>`<a href="#${href}" aria-label="${name}" title="${name}" ${current===href?'aria-current="page"':''}>${navigationIcon(href==='/budget'?'overview':href==='/history'?'history':'submit')}<span>${name}</span></a>`).join('')}<div class="settings-nav-row"><a href="#/settings/account" aria-label="Settings" title="Settings" ${current.startsWith('/settings/')?'aria-current="page"':''}>${navigationIcon('settings')}<span>Settings</span></a><button data-action="settings-toggle" aria-label="Toggle settings sections" aria-controls="settings-navigation" aria-expanded="${state.settingsOpen}">${navigationIcon('chevron')}</button></div></nav><nav class="settings-subnav" id="settings-navigation" aria-label="Settings sections" ${!state.settingsOpen?'hidden':''}>${settingsItems().map(([href,name])=>`<a href="#${href}" ${current===href?'aria-current="page"':''}>${name}</a>`).join('')}</nav></div>
+    <div class="sidebar-navigation" id="navigation" ${!state.menu&&matchMedia('(max-width:800px)').matches?'hidden':''}><nav aria-label="Main navigation">${menuItems().map(([href,name])=>`<a href="#${href}" aria-label="${name}" title="${name}" ${current===href?'aria-current="page"':''}>${navigationIcon(href==='/budget'?'overview':href==='/history'?'history':'submit')}<span>${name}</span></a>`).join('')}<button class="settings-toggle${current.startsWith('/settings/')?' is-current':''}" data-action="settings-toggle" aria-label="Settings" title="Settings" aria-controls="settings-navigation" aria-expanded="${state.settingsOpen}">${navigationIcon('settings')}<span>Settings</span><span class="settings-chevron" aria-hidden="true">${navigationIcon('chevron')}</span></button></nav><nav class="settings-subnav" id="settings-navigation" aria-label="Settings sections" ${!state.settingsOpen?'hidden':''}>${settingsItems().map(([href,name])=>`<a href="#${href}" ${current===href?'aria-current="page"':''}>${name}</a>`).join('')}</nav></div>
     <footer><button data-action="logout" aria-label="${state.session.demo?'Exit demo':'Sign out'}" title="${state.session.demo?'Exit demo':'Sign out'}">${navigationIcon('logout')}<span>${state.session.demo?'Exit demo':'Sign out'}</span></button></footer>
     </aside><div class="workspace-body"><header class="workspace-topbar"><div class="welcome"><span class="welcome-avatar">${navigationIcon('person')}</span><p>Welcome, <strong>${greeting}</strong></p>${state.session.demo?'<span class="demo-label">Simulation</span>':''}</div></header><main id="main" class="workspace-main"><div class="page" id="page"><div class="loading" role="status">Loading your workspace...</div></div></main></div>${state.session.demo?demoResetDialog():''}</div>`;
 }
@@ -155,7 +155,7 @@ function recoveryPage() {
   const treasurer=state.loginRole==='treasurer',enabled=state.session?.recovery_mode==='local-demo';
   const token=new URLSearchParams(location.hash.split('?')[1]||'').get('token');
   document.title='Reset password | Gantiin';
-  app.innerHTML=`<div class="login">${authBackground()}<main id="main" class="login-main"><header class="login-topbar">${brandLogo()}</header><section class="login-card recovery-card" aria-labelledby="recovery-title"><a class="recovery-back" href="#/login" aria-label="Back to sign in">${navigationIcon('back')}</a><header class="login-heading"><h1 id="recovery-title">Reset password</h1></header>${token||enabled?`<form data-form="recovery" novalidate>${formMessage}${token?'':treasurer?field('reset-id','ID','text','value="Treasurer" readonly'):field('reset-email','Email','email','required autocomplete="username" maxlength="180"')}${field('reset-password','New password','password',`required minlength="${token?12:1}" maxlength="128" autocomplete="new-password"`)}${field('reset-confirm','Confirm password','password',`required minlength="${token?12:1}" maxlength="128" autocomplete="new-password"`)}${token?'<p class="small muted">Use at least 12 characters.</p>':''}<button type="submit" class="primary">Reset password</button></form>`:'<p class="note" role="status">Ask your event operator for a reset link.</p>'}</section></main></div>`;
+  app.innerHTML=`<div class="login">${authBackground()}<main id="main" class="login-main"><header class="login-topbar">${brandLogo()}</header><section class="login-card recovery-card" aria-labelledby="recovery-title"><a class="recovery-back" href="#/login" aria-label="Back to sign in">${navigationIcon('back')}</a><header class="login-heading"><h1 id="recovery-title">Reset password</h1></header>${token||enabled?`<form data-form="recovery" novalidate>${formMessage}${token?'':treasurer?field('reset-id','ID','text','value="Treasurer" readonly'):field('reset-email','Email','email','required autocomplete="username" maxlength="180"')}${field('reset-password','New password','password','required maxlength="128" autocomplete="new-password"')}${field('reset-confirm','Confirm password','password','required maxlength="128" autocomplete="new-password"')}<button type="submit" class="primary">Reset password</button></form>`:'<p class="note" role="status">Ask your event operator for a reset link.</p>'}</section></main></div>`;
 }
 function setLoginRole(role) {
   if(!['treasurer','committee'].includes(role)||role===state.loginRole)return;
@@ -195,7 +195,7 @@ function budgetSetupPage(integrations) {
   return `${heading('Overview','',spreadsheetAction(integrations.spreadsheet_url,navigationIcon))}<section class="panel"><h2>Integration not configured</h2><a class="button" href="#/settings/connections">Open connections</a></section>`;
 }
 function membersPage(members) {
-  return `${heading('Committee members','')}<div class="columns"><section class="panel"><h2>Registered members</h2>${members.length?`<table class="data-table"><thead><tr><th scope="col">Member</th><th scope="col">Sandbox recipient</th></tr></thead><tbody>${members.map(m=>`<tr><td data-label="Member"><div><strong>${esc(m.name)}</strong><p class="small">${esc(m.email)}</p></div></td><td data-label="Recipient"><div>${m.recipient?.verified?'Verified '+(m.recipient.mode==='fixture'?'demo account':'Malaysian Sandbox account'):'Setup required'}<p class="small muted">${m.paypal_linked?'PayPal linked':'PayPal not linked'}</p></div></td></tr>`).join('')}</tbody></table>`:'<p>No committee members yet.</p>'}</section><aside class="panel"><h2>Create a CMT account</h2><form data-form="member" novalidate>${formMessage}${field('member-name','Member name','text','required maxlength="100" autocomplete="name"')}${field('member-email','Email','email','required maxlength="180" autocomplete="off"')}${field('member-password','Initial password','password','required minlength="12" maxlength="128" autocomplete="new-password"','At least 12 characters.')}<button type="submit" class="primary glass">Create CMT account</button></form></aside></div>`;
+  return `${heading('Committee members','')}<div class="columns"><section class="panel"><h2>Registered members</h2>${members.length?`<table class="data-table"><thead><tr><th scope="col">Member</th><th scope="col">Sandbox recipient</th></tr></thead><tbody>${members.map(m=>`<tr><td data-label="Member"><div><strong>${esc(m.name)}</strong><p class="small">${esc(m.email)}</p></div></td><td data-label="Recipient"><div>${m.recipient?.verified?'Verified '+(m.recipient.mode==='fixture'?'demo account':'Malaysian Sandbox account'):'Setup required'}<p class="small muted">${m.paypal_linked?'PayPal linked':'PayPal not linked'}</p></div></td></tr>`).join('')}</tbody></table>`:'<p>No committee members yet.</p>'}</section><aside class="panel"><h2>Create a CMT account</h2><form data-form="member" novalidate>${formMessage}${field('member-name','Member name','text','required maxlength="100" autocomplete="name"')}${field('member-email','Email','email','required maxlength="180" autocomplete="off"')}${field('member-password','Initial password','password','required maxlength="128" autocomplete="new-password"')}<button type="submit" class="primary glass">Create CMT account</button></form></aside></div>`;
 }
 function policyPage() {
   const e=state.event;
@@ -210,7 +210,7 @@ function policyPage() {
 function accountPage() {
   const u=state.session.user;
   if(state.session.demo)return `${heading('Account','')}<section class="panel"><dl class="detail-list"><dt>Name</dt><dd>${esc(u.name)}</dd><dt>Event</dt><dd>${esc(state.event.name)}</dd></dl><div class="actions">${demoResetButton()}</div></section>`;
-  const passwordPanel=`<section class="panel password-panel"><div class="section-heading"><span class="section-icon rose-icon">${navigationIcon('lock')}</span><h2 id="account-password-title">Change password</h2></div><form data-form="password" aria-labelledby="account-password-title" novalidate>${formMessage}<div class="password-inputs">${field('current-password','Current password','password','required autocomplete="current-password"')}${field('new-password','New password','password','required minlength="12" maxlength="128" autocomplete="new-password"','12+ characters')}</div><div class="password-actions"><button type="submit" class="primary">Change password</button></div></form></section>`;
+  const passwordPanel=`<section class="panel password-panel"><div class="section-heading"><span class="section-icon rose-icon">${navigationIcon('lock')}</span><h2 id="account-password-title">Change password</h2></div><form data-form="password" aria-labelledby="account-password-title" novalidate>${formMessage}<div class="password-inputs">${field('current-password','Current password','password','required autocomplete="current-password"')}${field('new-password','New password','password','required maxlength="128" autocomplete="new-password"')}</div><div class="password-actions"><button type="submit" class="primary">Change password</button></div></form></section>`;
   if(u.role==='treasurer')return `${heading('Account','')}<div class="account-treasurer">${passwordPanel}</div>`;
   const linkReady=state.session.paypal_login&&(u.role==='cmt'||state.session.paypal_sender_configured);
   const linkForm=`<form class="paypal-link-form" data-form="paypal" novalidate>${formMessage}${field('link-password','Website password','password','required autocomplete="current-password"')}<button type="submit">${navigationIcon('key')}<span>Link PayPal</span></button></form>`;
@@ -243,23 +243,30 @@ async function render() {
     }
     if(route()==='/forgot-password'){recoveryPage();return;}
     if(!state.session.user){login();return;}
-    state.event=await api('/event');
-    state.event.insufficient_context??='reject';
-    if(token!==state.routeToken)return;
     const current=route();
     const legacy={'/account':'/settings/account','/members':'/settings/members','/policy':'/settings/event','/settings':'/settings/account'};
     if(legacy[current]) {location.hash=legacy[current]+(location.hash.includes('?')?'?'+location.hash.split('?')[1]:'');return;}
     const allowed=[...menuItems().map(i=>i[0]),...settingsItems().map(i=>i[0])];
     if(!allowed.includes(current)&&!current.startsWith('/claim/')) {location.hash=state.session.user.role==='treasurer'?'/budget':'/submit';return;}
-    shell();const page=document.querySelector('#page');let html;let claims;
+    shell();const page=document.querySelector('#page');let html;
+    let dataRequest=Promise.resolve(null);
+    const needsSetup=current==='/budget'&&state.session.mode==='sandbox'&&!state.session.integrations?.sheets;
+    if(current==='/history')dataRequest=api('/claims');
+    else if(current==='/budget')dataRequest=needsSetup?api('/integrations'):Promise.all([api('/budget'),api('/claims')]);
+    else if(current==='/settings/members')dataRequest=api('/members');
+    else if(current==='/settings/connections')dataRequest=api('/integrations');
+    else if(current.startsWith('/claim/'))dataRequest=api(`/claims/${current.split('/')[2]}`);
+    const [event,data]=await Promise.all([api('/event'),dataRequest]);
+    if(token!==state.routeToken)return;
+    state.event=event;state.event.insufficient_context??='reject';
     if(current==='/submit') html=submitPage();
-    else if(current==='/history') html=historyPage(await api('/claims'));
-    else if(current==='/budget') {if(state.session.mode==='sandbox'&&!state.session.integrations?.sheets)html=budgetSetupPage(await api('/integrations'));else{const [budget,records]=await Promise.all([api('/budget'),api('/claims')]);html=budgetPage(budget,null,records);}}
-    else if(current==='/settings/members') html=settingsPage(membersPage(await api('/members')));
+    else if(current==='/history') html=historyPage(data);
+    else if(current==='/budget') html=needsSetup?budgetSetupPage(data):budgetPage(data[0],null,data[1]);
+    else if(current==='/settings/members') html=settingsPage(membersPage(data));
     else if(current==='/settings/event') html=settingsPage(policyPage());
     else if(current==='/settings/account') html=settingsPage(accountPage());
-    else if(current==='/settings/connections') html=settingsPage(connectionsPage(await api('/integrations')));
-    else if(current.startsWith('/claim/')) {const claim=await api(`/claims/${current.split('/')[2]}`);state.detailSignature=JSON.stringify(claim);html=renderClaimDetail(claim,{heading,icon:navigationIcon,apiPrefix:state.demo?'/api/demo-cmt':'/api'});}
+    else if(current==='/settings/connections') html=settingsPage(connectionsPage(data));
+    else if(current.startsWith('/claim/')) {state.detailSignature=JSON.stringify(data);html=renderClaimDetail(data,{heading,icon:navigationIcon,apiPrefix:state.demo?'/api/demo-cmt':'/api'});}
     if(token!==state.routeToken)return;
     page.innerHTML=html;
     if(current==='/submit'&&!Object.values(state.session.integrations||{}).every(Boolean)) {
@@ -335,8 +342,9 @@ app.addEventListener('submit',event=>{
         const result=await api(treasurer?'/login/treasurer':'/login',{method:'POST',data:treasurer?{password:data.get('password')}:{email:data.get('email'),password:data.get('password')}});
         rememberCommitteeEmail(result.user);
         state.session={...state.session,...result};state.loginRole=null;
-        location.hash=result.user.role==='treasurer'?'/budget':'/submit';
-        if(route()==='/submit'||route()==='/budget')await render();break;
+        const destination=result.user.role==='treasurer'?'/budget':'/submit';
+        if(location.hash===`#${destination}`)await render();else location.hash=destination;
+        break;
       }
       case 'claim': {
         if(!state.selected)throw new Error('Select a receipt image.');

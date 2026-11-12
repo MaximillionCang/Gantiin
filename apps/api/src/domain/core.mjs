@@ -11,7 +11,7 @@ export function text(value, name, max = 4000, min = 1) {
   invariant(typeof value === 'string' && value.trim().length >= min && value.length <= max, `${name} must contain ${min}-${max} characters.`);
   return value.trim();
 }
-export function passwordHash(password, minimumLength=12) {
+export function passwordHash(password, minimumLength=1) {
   text(password, 'Password', 128, minimumLength);
   const salt = randomBytes(16).toString('hex');
   return `${salt}:${scryptSync(password, salt, 64).toString('hex')}`;

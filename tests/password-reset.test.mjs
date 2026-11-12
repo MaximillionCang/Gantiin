@@ -31,7 +31,7 @@ test('expired, tampered, superseded and password-stale grants cannot reset an ac
   const first=token(issuePasswordReset(store.db,one.email,'http://localhost:3000',{now}));
   assert.throws(()=>redeemPasswordReset(store.db,first,changed,{now:now+15*60000}),/invalid or has expired/);
   assert.throws(()=>redeemPasswordReset(store.db,'x'.repeat(64),changed),/invalid or has expired/);
-  assert.throws(()=>redeemPasswordReset(store.db,first,'A',{now}),/12-128/);
+  assert.throws(()=>redeemPasswordReset(store.db,first,'',{now}),/1-128/);
   const second=token(issuePasswordReset(store.db,one.email,'http://localhost:3000',{now}));assert.throws(()=>redeemPasswordReset(store.db,first,changed,{now}),/invalid or has expired/);
   store.db.prepare('UPDATE users SET password=? WHERE id=?').run(passwordHash('Independently-changed94'),one.id);
   assert.throws(()=>redeemPasswordReset(store.db,second,changed,{now}),/invalid or has expired/);

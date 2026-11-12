@@ -1,5 +1,15 @@
 # Gantiin checkpoint
 
+## Latest completed changes: performance, Settings and judge accounts
+
+12 November 2026: implemented the owner's subsequent requests. Login renders once; independent event/page requests run concurrently; the workspace shell appears before API completion. Overview display reads no longer wait behind AI processing, and share concurrent reads without retaining stale balances. Payment allocation/authorization retains fresh budget and journal checks. Google metadata/formula reads run concurrently. Allowlisted public assets use in-memory loading, ETag/304 and gzip; private APIs and receipts stay no-store. Measured app.mjs 51,814 to 14,523 bytes over gzip, CSS 45,502 to 8,830; first image download is still required.
+
+Settings is now one disclosure button, opening/closing its submenu without changing route; only a submenu choice navigates. Keyboard/mobile/collapsed-rail behavior preserved. The owner requested removal of password minimum/complexity checks, simple website passwords and public README judge access. Website passwords in the existing Sandbox DB were updated to the README values after a private consistent backup; target sessions/OAuth states revoked and all financial records/receipts/event verified unchanged. No accounts were reseeded. PayPal credentials were provided by the owner and explicitly authorized for README; first Business password's asterisk was clarified (no backslash). No PayPal provider password was changed. Do not expose API secrets or private credentials JSON.
+
+Verification: syntax 65 modules; 115/115 backend tests; full 26/26 browser suite (2.4 minutes), including one request per page resource on login, concurrent fetching, dropdown-only Settings and one-character password change. Desktop/mobile Settings screenshots inspected. No paid inference, payout, spreadsheet write, owner-server restart or deployment was performed. Code changes require a normal server restart; a new HTTPS tunnel requires the new PayPal Return URL. These changes are not committed/pushed yet. Previous commit remains acad548 unless the owner has changed Git independently.
+
+Logs and working copy: C:\Users\LENOVO\Documents\Codex\2026-11-12\gantiin-performance. Private operator password-update script stays outside repository; database backup is ignored under data/runtime/backups. Remaining historical documentation consolidation/deployment work below is still outstanding.
+
 ## Local commit handoff
 
 The owner subsequently requested git add and a local commit, with only the push command handed back. This commit is a progress snapshot of the implemented app and selected documentation, not a completed release. Consult git log for the commit identifier. The unfinished documentation, manual verification and deployment tasks listed below remain outstanding. Private environment files, credentials, runtime data and generated reports must remain ignored. Do not push automatically.
