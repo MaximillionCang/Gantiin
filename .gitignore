@@ -36,6 +36,13 @@ logs/
 *.log
 *.sqlite
 *.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite.lock
+/data/runtime/
+**/initial-access.txt
+playwright-report/
+test-results/
 .cache/
 work/
 tmp/

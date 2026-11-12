@@ -1,20 +1,7 @@
-# Kontribusi
+# Contributing
 
-Status saat ini hanya template. Baca [MVP](docs/product/mvp.md), [arsitektur](docs/engineering/architecture.md), dan [panduan development](docs/engineering/development.md).
+Read PRD.md, DESIGN.md, AGENTS.md and docs/engineering/decisions.md. Use synthetic examples and describe the concrete behavior/acceptance scenario. Update contracts/docs with changes.
 
-## Alur kerja setelah implementasi diminta
+Run npm test, npm run check and, for browser changes, npm run test:e2e. Record actual evidence, distinguishing fixture/mocked tests from real Sandbox/Sheets/AI trials. Authentication, money, recipient snapshots, concurrency and recovery changes need relevant behavior tests.
 
-1. Pilih satu kebutuhan dan tulis kriteria penerimaannya.
-2. Jelaskan perubahan perilaku yang diusulkan.
-3. Gunakan contoh sintetis.
-4. Perbarui kontrak, dokumen, dan status sesuai perubahan.
-5. Uji batas akses, revisi, perhitungan, dan pembayaran jika terkait.
-6. Catat pemeriksaan yang benar-benar dijalankan.
-
-Contoh nama branch: feature/item-review, fix/claim-isolation, docs/payment-flow. Tidak ada branch atau remote dibuat oleh template.
-
-## Review
-
-Perubahan otorisasi, kebijakan, penerima, nominal, dan retry pembayaran perlu pemeriksaan khusus terhadap perilaku sebelumnya.
-
-Belum ada perintah install, lint, build, atau test. Jangan membuat hasil tes palsu atau workflow yang selalu hijau tanpa pengujian.
+No live transfers, secrets, private receipts, invented accuracy claims, paid infrastructure or new charges without owner authorization. Financial reporting and future settlement remain deferred until defined.

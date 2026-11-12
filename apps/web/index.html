@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-type="software">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="page-type" content="software">
+    <meta name="site-kind" content="software">
+    <meta name="theme-color" content="#F5F5F8">
+    <title>Sign in | Gantiin</title>
+    <link rel="stylesheet" href="/style.css">
+    <script type="module" src="/app.mjs"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to main content</a>
+    <div id="app"><main id="main"><p role="status">Loading Gantiin...</p></main></div>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+    <dialog id="rejection-dialog" class="rejection-popup" aria-labelledby="rejection-title" aria-describedby="rejection-reason">
+      <button type="button" class="popup-close" aria-label="Close rejection reason"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <span class="status status-rejected">Rejected</span><h2 id="rejection-title"></h2><p id="rejection-reason"></p>
+    </dialog>
+    <div id="toast" class="toast" hidden>
+      <span class="toast-message" role="status" aria-live="polite" aria-atomic="true"></span>
+      <button type="button" class="toast-close" aria-label="Dismiss notification"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </div>
+  </body>
+</html>

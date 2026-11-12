@@ -1,29 +1,11 @@
-# Entitas usulan
+# Durable data model
 
-Belum ada database atau migration.
+Connected upgrade uses additive JSON fields without resetting or migrating accounts/financial rows. Claims preserve raw extraction and normalized scoped/net costs, separate model identities, extraction/assessment times and snapshot digests. New payments retain immutable policy/reference/assessment/receipt/recipient/item authorization, item digest, eligible amount and durable sheet_item_start alongside the existing payment row. Legacy stored payments without item snapshots remain readable and are never fabricated into new approved references. See net-cost.md for schema/read-back rules.
 
-| Entitas | Data minimum |
-|---|---|
-| users | ID internal dan identity provider |
-| events | Nama, tanggal, currency, budget |
-| memberships | User, event, role |
-| event_policies | Event, versi, aturan |
-| claims | Pemohon, event, revisi, tujuan, status |
-| receipts | Claim, private storage key, checksum |
-| claim_items | Deskripsi asli/koreksi, kuantitas, nilai minor units |
-| assessments | Claim/revisi, policy/model/prompt version, hasil tervalidasi |
-| approvals | Aktor, revisi, snapshot keputusan item, jumlah |
-| payment_batches | ID unik internal/provider, nominal/currency, status |
-| payment_items | Claim/revisi/penerima dan status individual |
-| recipient_profiles | Penerima terverifikasi dan waktu verifikasi |
-| audit_events | Aktor, tindakan, resource, revisi, waktu |
+SQLite schema is maintained in apps/api/src/db.mjs. Currency is MYR; monetary values are bounded integer sen.
 
-## Invariant
+Accounts carry role and single-event membership; sessions contain hashed tokens/CSRF/expiry. Event policy retains monotonic version and full rules. Claims retain private receipt bytes/hash, context, revision, extracted items, validated assessment/policy/reference snapshots, and operational state. Unique event/receipt hash prevents exact duplicates. Unique user/idempotency key binds replay to payload.
 
-Membership mengikat akses ke acara. Approval mengikat revisi, penerima, keputusan, dan kebijakan. Gunakan transaksi database serta batasan unik untuk menghindari dua payout aktif pada klaim sama.
+One payment per claim stores stable IDs, verified recipient snapshot, amount, provider IDs, success/unknown/failed state, reserved funds, assigned sheet row, and synchronization state. Audit records identify the shared treasurer account rather than pretending to know its individual operator. OAuth states expire and are single-use.
 
-Simpan uang sebagai integer minor units dengan currency. Contoh USD memakai eksponen 2; jangan menggeneralisasi ke semua mata uang.
-
-Status claim usulan: draft, submitted, needs_review, approved, rejected, payment_pending, paid.
-
-Status payment usulan: queued, submitted, pending, succeeded, failed, unknown. Unknown memerlukan rekonsiliasi. Permintaan diterima belum berarti payout berhasil.
+No human approval table or general financial report is part of this MVP. Payment/assessment snapshots are the automatic authorization record.

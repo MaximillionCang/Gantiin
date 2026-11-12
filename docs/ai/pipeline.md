@@ -1,29 +1,13 @@
-# Pipeline AI usulan
+# AI pipeline
 
-Belum ada OCR, model, inference, atau pengukuran dijalankan.
+1. Validate PNG/JPEG signature, size and ownership.
+2. Extract evidence through a separately configured LangChain Gemini OCR structured call (ai/extraction.mjs).
+3. Validate visible MYR/printed total, original item lines, specific discounts and known adjustment scopes. Calculate exact net item sen with deterministic proportional allocation, retaining evidence; unsupported/ambiguous charges remain technical failures.
+4. Retrieve current policy, RAB and explicitly approved history with source IDs.
 
-## Tahapan
+The implementation ranks references by receipt description/category word overlap, supplying at most 40 relevant rows. Missing matches never become automatic business rejection. Source snapshots preserve the exact rows supplied. The chosen baseline is small and deterministic; real model/context quality remains unmeasured.
+5. Assess binary item outcomes with the separate LangChain decider prompt/schema, using policy and actual evidence as data. No fabricated purchase purpose, recipient or remaining funds.
+6. Validate coverage, decisions, category, reason, known rule/reference IDs and policy version.
+7. Application totals accepted net costs, snapshots authorization, checks fresh funds and verified recipients, then authorizes automatic payment separately. Only confirmed payout-item success records payment plus reimbursed-item details in Sheets; recording never promotes expenses into approved references.
 
-Validasi unggahan, OCR, koreksi item oleh panitia, konteks kebijakan, rekomendasi LLM, validasi hasil, tinjauan bendahara, dan perhitungan server.
-
-OCR confidence mengukur keyakinan pembacaan, bukan keaslian bon atau hak reimburse. Skor yang ditulis LLM bukan probabilitas terkalibrasi.
-
-## Kandidat
-
-PaddleOCR lokal dan model teks melalui Ollama. Gemini menjadi pilihan tambahan setelah kuota serta penanganan datanya dipastikan. Benchmark model pada contoh yang relevan sebelum memilihnya.
-
-Ollama digunakan menjalankan model. Pelatihan membutuhkan pipeline dan alat terpisah.
-
-## Input dan output
-
-Berikan trusted policy dari database terpisah dari receipt/context yang tidak dipercaya. Gunakan template [prompt](../../ai/prompts/item-review.md).
-
-Output menyertakan claim ID, revisi, policy version, serta daftar item dengan recommendation, rule_ids, dan reason. Periksa seluruh item muncul tepat sekali, ID dikenal, versi cocok, dan aturan yang dirujuk benar.
-
-Model tidak memiliki tool pembayaran dan tidak menentukan recipient atau jumlah final.
-
-## Kuota dan cache
-
-Kirim konteks secukupnya, kelompokkan item satu bon, dan batasi panjang output. Cache terikat revisi klaim, kebijakan, prompt, dan model; perubahan terkait membatalkan cache.
-
-Jika provider gagal atau kuota habis, simpan menunggu pemeriksaan atau arahkan ke tinjauan manusia. Jangan menyetujui secara otomatis karena model tidak tersedia.
+No model payment tools, recipient selection, secret access, or training. Fixture mode is a deterministic, labeled simulation using known synthetic receipts, not real OCR/AI. Errors remain operational, never fabricated rejection. Model/provider and cost authorization are explicit server configuration; no silent model selection or fallback.

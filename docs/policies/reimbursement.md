@@ -1,37 +1,11 @@
-# Kebijakan reimburse
+# Reimbursement policy
 
-Rancangan perilaku aplikasi; kebijakan aktual ditetapkan bendahara tiap acara.
+PRD 1.1 supersedes manual approval and USD. The treasurer configures a versioned event description, allowed/prohibited rules and categories. Insufficient purchase context defaults to rejection with explanation, as confirmed by the owner. No final event is selected by code. Synthetic policy is labeled and available only through explicit fixture seeding.
 
-## Konteks
+AI returns accepted/rejected for every valid item, with category, reason, policy and actual reference IDs. Current prohibitions override old history. An item absent from RAB/history can qualify with policy and context. Technical errors do not produce business rejection. There is no manual approval/override or needs_review state.
 
-Aturan berversi memuat kategori boleh/dilarang, batas, tanggal, bukti, dan otoritas approval. Item memuat deskripsi, kuantitas, harga, tujuan, serta persetujuan sebelumnya jika ada. Nama barang/acara saja tidak membuktikan kebutuhan.
+The server calculates integer MYR sen from validated evidence, never model payment totals. Apply specific discounts once to their actual items; allocate explicitly scoped shared tax/discount proportionally to post-item-discount values, using largest remainders and printed-order ties. Reconcile exactly to the printed total. Included tax is not added again. Unknown scope/basis, unsupported other charges or irreconcilable evidence fail technically. See engineering/net-cost.md. Policy/reference/recipient changes invalidate unfinished assessment; authorized payment snapshots remain immutable.
 
-## Hasil AI
+Application authorization binds claim, policy, assessment, recipient verification, and amount. Pay min(eligible, allocatable budget); never a zero payout. Keep eligible, planned, confirmed paid, and unpaid separate. Differences are recorded only and never automatically settled later. Sender covers fees outside reimbursement; real funding/configuration remains to verify.
 
-- eligible: bukti sesuai aturan yang dirujuk.
-- ineligible: konteks bertentangan dengan aturan yang disebut.
-- needs_review: data atau aturan belum cukup/ambigu/tidak terbaca.
-
-Hasil adalah rekomendasi. AI tidak memastikan struk asli dan tidak memberikan otorisasi payout.
-
-## Jumlah
-
-Bendahara memilih item/kuantitas final; perubahan mempunyai alasan. Server menghitung dari data terverifikasi, bukan hasil hitung LLM.
-
-MVP contoh memakai USD dalam integer sen. Satu acara memakai satu currency. Tolak currency berbeda; jangan konversi otomatis.
-
-Diskon item mengikuti item. Pajak/diskon bersama memerlukan aturan alokasi dan pembulatan yang ditetapkan bendahara. Jika belum jelas, minta tinjauan dan blok pembayaran sampai jelas.
-
-Jumlah reimburse tidak boleh melebihi pengeluaran terverifikasi setelah penyesuaian.
-
-## Revisi dan duplikasi
-
-Kemiripan bon merupakan sinyal untuk tinjauan, bukan bukti fraud. Catat alasan temuan.
-
-Koreksi item/konteks/penerima menaikkan revisi. Perubahan kebijakan relevan membatalkan keputusan yang sudah kedaluwarsa. Approval hanya berlaku pada snapshot yang dicatat. Bekukan revisi setelah payout dimulai hingga rekonsiliasi selesai.
-
-## Dana
-
-Bedakan anggaran tercatat, kewajiban yang disetujui, dan dana tersedia pada provider. Klaim tetap tercatat jika dana belum cukup.
-
-Cek serta reservasi komitmen secara atomik agar dua proses tidak memakai anggaran yang sama. Tandai paid hanya dari keberhasilan provider yang terkonfirmasi.
+Receipt bytes are hashed per event to block exact repeat payments, without claiming general fraud detection. Unknown provider outcomes retain reservations; only definitive failure releases them. Paid requires verified payout-item success. Idempotent fixed-row Sheets synchronization never creates another payout.

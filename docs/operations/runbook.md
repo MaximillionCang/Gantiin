@@ -1,15 +1,15 @@
-# Runbook rancangan
+# Local runbook
 
-Belum ada layanan yang dioperasikan. Tambahkan identitas layanan dan perintah nyata setelah deployment diizinkan dan dilakukan.
+Start with npm start. Durable worker resumes received/processing claims and existing pending payments after restart. Monitor history's separate processing/payment/sync columns. Never remove or edit payment rows to force a retry.
 
-| Gangguan | Respons yang direncanakan |
+| Failure | Action |
 |---|---|
-| Bon buram/OCR gagal | Minta unggah ulang atau koreksi; jangan mengarang item |
-| AI gagal/kuota habis | Status menunggu, atau tinjauan bendahara tercatat |
-| Payout timeout | Pending/unknown; rekonsiliasi referensi lama |
-| Payout gagal | Simpan alasan aman dan tinjau sebelum retry |
-| Notifikasi berulang | Verifikasi, deduplikasi, dan update atomik |
-| Secret bocor | Cabut/rotasi, periksa dampak, gunakan saluran privat |
-| Data hilang | Ikuti prosedur pemulihan yang sudah diuji |
+| Extraction/model invalid or unavailable | Technical retry same claim; no fabricated decisions. Unsupported receipt needs a new corrected submission after resolving duplicate safeguards. |
+| Sheets read fails | No new allocation; fix access/schema and retry. |
+| Payout unknown | Reservation held; reconcile stable provider identity, never create another claim/payment. |
+| Payout definitive failure | Record failure and release reservation; no automatic future settlement. |
+| Paid, Sheets write fails | Retry sync only to assigned row; no second payout. |
+| Sheet ledger/formula changed | Stop allocation; reconcile protected ranges with payment journal before resuming. |
+| Secret leaked | Revoke/rotate privately; inspect impact. |
 
-Jangan mengklaim pembayaran, backup, atau recovery berhasil tanpa bukti.
+Use one process/writer and a dedicated sheet. Stop process before local database backup; keep private DB and .env together under controlled access. Retention/deletion and production backups remain unresolved before deployment. No claims of tested disaster recovery.

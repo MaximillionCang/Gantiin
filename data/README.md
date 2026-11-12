@@ -1,11 +1,7 @@
 # Data
 
-examples berisi ilustrasi sintetis buatan template, bukan orang/acara/transaksi nyata. Expected assessment adalah target ilustratif, bukan hasil AI yang pernah diukur.
+examples/receipts.json supplies the deterministic fixtures used by isolated tests and the explicitly enabled fixture adapter. Their images are in apps/web/demo. Expected outcomes are test labels, not measured AI accuracy.
 
-Contoh: 2500 + 1200 + 4500 = 8200 sen USD. Rekomendasi item layak: 3700 sen. Pajak/diskon nol.
+runtime/ holds private, ignored application databases and access notes. Cleanup must never move, reset or delete these records. The real balance is read from Google Sheets; no default fixture balance is used by the normal application configuration.
 
-raw, processed, dan models hanya untuk data lokal serta diabaikan Git. Jangan memindahkan data privat ke examples agar ter-commit.
-
-dataset-register.csv mencatat sumber, versi, lisensi, izin training/redistribusi, dan data pribadi. Belum ada dataset eksternal terdaftar.
-
-Data sintetis template mengikuti lisensi proyek. Dataset/model eksternal mempertahankan lisensi asal.
+The separate demo/campus-career-day package contains the selected event, realistic synthetic receipts and an evaluation key. No external dataset or model weights were downloaded. Unused raw/processed/models placeholders and duplicate JSON examples were removed.

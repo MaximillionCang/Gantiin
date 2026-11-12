@@ -1,20 +1,15 @@
-# Panduan development
+# Development
 
-## Sekarang
+Requires Node 24.16+ in the Node 24 line. From repository root run npm.cmd ci, create .env from .env.example only if absent, then npm.cmd start. Open http://localhost:3000 with existing credentials. Only on an empty fixture database run npm.cmd run seed:demo once; never reseed for updates. The seed refuses populated accounts and creates synthetic policy/identities. Preserve populated .env values; add missing slots manually. On restricted PowerShell use npm.cmd to avoid the npm.ps1 execution-policy block. See handover.md for all fields and later authorized Sandbox setup.
 
-Hanya template. Tidak ada package.json, pyproject.toml, migration, dependency terpasang, server aplikasi, atau perintah run/test.
+Run npm test for Node behavior/HTTP tests, npm run check for source checks, npm run test:e2e for Playwright Chromium. Browser installation may require npx playwright install chromium; do not provision paid services. Exact observed results belong in docs/verification/current.md. Browser screenshots/traces/reports use .cache/reports.
 
-Jangan memulai implementasi tanpa instruksi lanjutan pemilik.
+BUDGET_SOURCE defaults to google, including when INTEGRATION_MODE is fixture. The real owner sheet is currently empty and has no financial schema, so the UI must show Unavailable. Never initialize it or display a sample balance to finish development. Isolated test configuration explicitly selects fixture; fixture payouts are disabled with the real Google budget.
 
-## Ketika mulai diizinkan
+Source: apps/api/src for server/domain/adapters, apps/web for browser UI, scripts for local setup/probes, tests for acceptance behavior. The selected SQLite API requires Node 24.16+. This is a single-process local hackathon application, not a multi-instance production service.
 
-1. Konfirmasi stack dan versi.
-2. Inisialisasi web/API, manifest, dan lockfile.
-3. Tentukan identity provider, database, serta private storage.
-4. Salin .env.example menjadi .env dan isi hanya yang dibutuhkan.
-5. Buat migration dan seed sintetis.
-6. Tambahkan perintah install, run, lint, test, dan build yang sudah dicoba.
+Keep .env and data/runtime private. No secrets are passed in command-line arguments. Configuration and provider errors fail closed. Use synthetic receipts only; do not upload private data to a cloud model without authorization.
 
-Pisahkan development/demo dari data nyata. Uji otorisasi, jumlah, revisi, approval, serta pembayaran. Pertahankan adapter provider agar perubahan model tidak mengubah kebijakan inti.
+UI revision 1.2 uses the existing database directly. Start with npm start; do not reseed, recreate accounts or rotate passwords. Entry begins with Treasurer (existing shared password only) or Committee (email/password). Authentication endpoints enforce database roles independently of the selection. Browser test seeding occurs only in temporary isolated databases and cannot reset the running demo.
 
-Jangan menampilkan perintah atau hasil tes seolah-olah sudah tersedia dalam template.
+For HTTPS testing on this prepared installation, run npm.cmd run start:https. It starts the Sandbox website and cloudflared together in the foreground, uses the generated HTTPS origin for OAuth/cookies, and prints Website and PayPal Return URL. Keep that terminal open; Ctrl+C stops both and releases the database. Each new Quick Tunnel has a new hostname: register the new printed Return URL in PayPal before testing login and use the printed Website URL in the browser. The old temporary URL is expired. npm.cmd run start:sandbox remains local-only at localhost:3000. CLOUDFLARED_PATH in the private profile points to the verified installed CLI; other installations can provide the official CLI on PATH. Never run both server commands at once. No AI, funding or payment flag is enabled by this startup command.

@@ -1,23 +1,5 @@
-# Draft pitch
+# Pitch draft
 
-Status: konsep. Ubah agar mencerminkan fitur yang benar-benar selesai sebelum submit.
+Gantiin checks each receipt item against event policy and spreadsheet references, then automatically reimburses eligible committee purchases through PayPal Sandbox within the available MYR budget. Members see their own results; treasurers configure policy and track paid/unpaid history.
 
-## Title
-
-Gantiin
-
-## Elevator pitch
-
-Gantiin uses AI to check each receipt item against event rules, helping treasurers approve eligible amounts and reimburse committee members through PayPal.
-
-## Problem hypothesis
-
-Event committees need a clear way to reimburse event purchases when receipts also include personal items.
-
-## Proposed demonstration
-
-A member submits a mixed receipt. AI recommends eligibility with policy references. A treasurer approves a partial amount, initiates a PayPal Sandbox payout, and tracks its result.
-
-## Evidence to add
-
-Measured extraction quality, decision errors on unseen examples, treasurer feedback, working payout, and limitations. No accuracy, savings, users, or fraud-prevention claims are measured yet.
+Demonstrate a mixed receipt, item reasons, partial payment and synchronized records. Clearly distinguish fixture mode from actual Sandbox integrations. Add measured evidence only after verification. No accuracy, savings, security, customer or fraud-prevention claims are established.

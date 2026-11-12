@@ -6,11 +6,11 @@ Data pada data/examples sepenuhnya sintetis dan dibuat untuk ilustrasi. Expected
 
 ## Dataset eksternal
 
-Catat sumber, versi, lisensi, izin training, izin redistribusi, dan izin penggunaan informasi pribadi. Dapat diakses publik tidak berarti bebas disalin. Gunakan data/dataset-register.csv.
+Catat sumber, versi, lisensi, izin training, izin redistribusi, dan izin penggunaan informasi pribadi sebelum memakai dataset eksternal. Dapat diakses publik tidak berarti bebas disalin. Project sekarang tidak menyertakan dataset eksternal atau bobot model.
 
 ## Penyimpanan
 
-data/raw, data/processed, dan data/models adalah lokal-only dan diabaikan Git. .gitkeep tidak mengizinkan publikasi file privat.
+data/runtime adalah penyimpanan lokal privat dan diabaikan Git. Folder training yang hanya berisi placeholder sudah dihapus; ini tidak memberi izin untuk mempublikasikan data privat.
 
 Bon aplikasi nanti memakai private storage. Jangan log seluruh bon, teks OCR, email, token, atau data penerima.
 

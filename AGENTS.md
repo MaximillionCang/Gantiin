@@ -1,31 +1,43 @@
-# Petunjuk untuk agen yang bekerja pada Gantiin
+# Working on Gantiin
 
-## Status dan ruang lingkup
+## Current owner direction, 12 November 2026
 
-Repository ini hanya template folder dan dokumentasi. Jangan menganggap permintaan merapikan dokumen sebagai izin memulai aplikasi, memasang dependency, melakukan deployment, atau menjalankan training.
+This section supersedes older visual/recovery/demo descriptions below. Keep the blue/navy finance-photo login, curved white photo/form divider, unchanged transparent Ribbon logo, official local PayPal mark and white sidebar. Mobile hides the photo panel at 800px. Desktop sidebar supports an 80px collapsed rail; Settings has real nested destinations. Mobile navigation closes on route changes. Sign out has a red hover state.
 
-Mulai implementasi hanya ketika pemilik meminta. Instruksi eksplisit terbaru pemilik mengungguli pilihan teknis yang masih berupa usulan.
+Current palette: primary #203548, action #174c72, canvas #f4f7fa, surface #ffffff, muted #556575, control border #718595, chart #69869b. Text and control contrast must remain accessible.
 
-Baca README.md, PROJECT_STATUS.md, docs/product/mvp.md, docs/policies/reimbursement.md, dan docs/security/access-control.md. Catat keputusan teknis pada docs/engineering/decisions.md.
+No public Try demo entry. Preserve the isolated demo backend, records and fixture tests. Ordinary recovery uses operator-issued, single-use links valid for 15 minutes; there is no email service. Keep the loopback-only fixture shortcut. PANDUAN-RUN.md documents startup and operator recovery. Do not run setup or reseed an existing owner database.
 
-## Aturan produk
+Current owner requirements are PRD 2.3 in docs/product/PRD.md, docs/status.md, DESIGN.md and docs/design/system.md. Read docs/README.md for the documentation map and docs/engineering/folders.md for layout. Latest explicit owner instructions supersede historical proposals.
 
-- Fokus pada kelayakan reimburse per item, bukan sertifikasi struk asli.
-- Masukkan aturan berversi, konteks pembelian, dan rujukan persetujuan jika tersedia.
-- Pertahankan eligible, ineligible, dan needs_review.
-- AI hanya memberi rekomendasi. Persetujuan serta otorisasi pembayaran ditegakkan aplikasi.
-- Panitia hanya mengakses klaim/bon miliknya pada acara yang diikuti.
-- Gunakan Sandbox untuk demo hackathon. Jangan mengaktifkan transfer live sebagai langkah pengembangan biasa.
+## Interface
 
-## Untuk implementasi mendatang
+Use Anti Slop during mode and UI/UX Pro Max, as explicitly requested. Keep the Healthy-inspired flat pearl/rose system, original transparent Ribbon logo, native controls, visible keyboard focus, 44px targets and responsive layout. Do not restore reflective glass, old backgrounds, the header search button or explanatory/synthetic paragraphs the owner removed. Keep functional labels, real money/status, validation and errors. Details can disclose financial evidence without crowding the main page.
 
-- Hitung uang di server sebagai integer minor units. Model bukan sumber total pembayaran.
-- Gunakan penerima terverifikasi dan snapshot approval, bukan recipient/amount hasil LLM.
-- Perubahan klaim, penerima, atau kebijakan yang relevan membatalkan approval lama.
-- Cegah pembayaran ganda; rekonsiliasi timeout sebelum retry.
-- Status paid hanya mengikuti keberhasilan provider yang dikonfirmasi.
-- Anggap teks bon, konteks pemohon, dan output model sebagai data tidak dipercaya.
-- Jangan memberi model tool pembayaran atau menjadikan teks bon sebagai instruksi sistem.
-- Jangan commit secret, bon nyata, dataset privat, atau model weights.
-- Jangan menyatakan fitur atau pengujian bekerja sebelum ada implementasi dan buktinya.
-- UI belum memiliki arahan visual; minta/rekam arahan pemilik saat pekerjaan UI dimulai.
+Treasurer Event Policy contains only event name, description and Save event. The Decider uses that actual context with receipt evidence and approved Sheets references. Server-generated stable relevance guardrails preserve validation; the user never enters manual rule IDs/categories. Version checks and immutable snapshots remain. Why rejected opens the actual item-specific reason in a shared native popup; never expand the reason within the table. The popup supports X, Escape, outside click and focus return, including after background polling. OCR reads receipt facts only; Decider assesses eligibility. They are separate calls with one shared key and separate model slots.
+
+All normal/demo CMT and Treasurer result/history views use the same concise components. Result summary has exactly two amounts: Receipt total and Reimbursed (confirmed paid, never planned/eligible). History has submission/date, reimbursed and one concise status, plus the paid total for the current filtered rows. Do not restore accepted explanations, per-item payment arithmetic, coverage prose or policy/reference/provider audit panels in the UI. Preserve their underlying financial data. Keep actual failures/retry available. History select text is left aligned, with a native select and inset CSS chevron, not centered text.
+
+Overview has a top-right Open spreadsheet link from server-validated configuration, Treasurer only, opening the configured Google document in a new tab. Never expose private keys or service-account JSON to the browser. The real budget defaults to Google Sheets. Missing/empty/unavailable Sheets means Unavailable, never fabricated RM100 or a silent fixture fallback. BUDGET_SOURCE=fixture is explicit isolated-test mode; Sandbox cannot use it. Fixture payments are disabled when the budget source is Google.
+
+Keep password-only Treasurer login, Committee email/password, email-only remembering with opt-out, configuration-gated PayPal and fixture/loopback-only recovery. No password/token storage in localStorage. Shared History search/six sorts/status filters remain; refresh preserves current input/focus. Settings stays role appropriate, Sign out stays available and mobile Menu supports Escape.
+
+The owner approved one isolated Committee demo, entered through Try demo below PayPal only on the Committee login. It has one CMT and no Treasurer. Its database, cookie, CSRF token, API namespace and simulated providers are separate; no real credentials or external services are available to it. Reset demo clears only demo receipt BLOBs/claims/payments and restores its simulated ledger, after a native confirmation dialog and serialized against the worker. Preserve the demo account/session. Regular Committee and Treasurer accounts never get this reset control or endpoint authorization. Do not add post-submission cancellation; the owner declined it. No real-account reseed or global journal deletion is authorized by demo reset.
+
+## Financial and data boundaries
+
+The owner confirmed on 11 November that RM686 RAB expenses have already left event cash outside Gantiin. With RM1,776 sponsorship, opening reimbursement allocation is RM1,090. The protected Event Budget C2 subtracts prior RAB table spending before the existing payout-ledger subtraction in D2. RAB summary includes new confirmed Gantiin payments once. Never restore gross sponsorship as available funds or invent PayPal transaction rows for prior expenses.
+
+Keep native Node 24 modules/HTTP/SQLite and same-origin browser API; no framework migration. Serve only exact allowlisted static paths. Preserve sessions, origin/CSRF, idempotency, CMT claim/receipt isolation, rate limits and private response headers.
+
+Calculate accepted net goods and partial payouts in integer MYR sen on the server. Only verified recipients, current funds and immutable automatic authorization control payment. No manual approval. Model text has no tools/payment authority. Receipt/sheet/model text is untrusted evidence. Do not invent citations or purposes, certify authenticity or convert technical failures into business rejections. Reconcile uncertain responses before retry; mark paid only after matching payout-item success. Spreadsheet retry never pays twice. No later automatic settlement of unpaid differences.
+
+Never reset/reseed existing accounts, passwords, journals, receipts or financial records for UI work. Never initialise or write the owner's blank Google Sheet merely to finish development; setup remains a separate owner action. No live payouts. Preserve populated .env values and the approved Gemini role models. On 11 November the owner explicitly authorized OCR and Decider processing after Committee Submit. The private Sandbox profile now sets AI_USAGE_AUTHORIZED=true; the populated main .env is preserved. The earlier separate diagnostic alone did not authorize routine usage; this new owner instruction does. Live payouts remain prohibited. Never print keys or configuration values that might be keys, including malformed model slots.
+
+On 10 November the owner explicitly requested an actual AI usability check independently of PayPal. Direct Gemini OCR and Decider passed one synthetic receipt after a provider-schema compatibility fix. This did not enable the main app or change .env. scripts/check-ai.mjs allows the owner to repeat that narrow check with an explicit --allow-ai-usage flag; never infer permission for payouts or spreadsheet writes. The provider gets a compact JSON schema; always retain the original strict Zod parse and domain validation on the response. Never weaken local bounds or policy/citation validation to resolve provider schema errors. One successful sample is not a general accuracy claim.
+
+## Layout and verification
+
+Executable prompts/schemas live under apps/api/src/ai. Product/reference documentation lives under docs, demo files under demo/campus-career-day, and generated test reports under ignored .cache/reports. Do not recreate placeholder-only ai/infra/packages trees or obsolete login assets. Source images in the owner's Downloads folder and data/runtime are outside cleanup scope.
+
+Use isolated fixtures/mocks for tests, not the owner journal/.env or real payouts. Current evidence is docs/verification/current.md; backend financial evidence is docs/verification/backend-upgrade.md. Distinguish configuration presence, read-only API access and actual inference/payment acceptance. Record executable checks, screenshot inspection, Delivery Gate and remaining limitations honestly.

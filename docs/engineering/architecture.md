@@ -1,33 +1,9 @@
-# Arsitektur usulan
+# Architecture
 
-Status: rancangan, belum ada aplikasi.
+See ADR-008 through ADR-010. Node 24 ES modules serve the API and semantic HTML/browser modules from one origin. SQLite holds accounts, sessions, policies, private receipt BLOBs, claims, payments, durable work, and audit events. There is no public receipt storage.
 
-| Komponen | Tugas | Kandidat |
-|---|---|---|
-| apps/web | Form panitia, tinjauan bendahara, rekap | Next.js/TypeScript |
-| apps/api | Otorisasi, klaim, jumlah, integrasi | FastAPI/Python |
-| Database | Event, membership, revisi, approval, payment | PostgreSQL |
-| Object storage | Bon privat | Belum dipilih |
-| OCR | Gambar menjadi teks/item | PaddleOCR |
-| LLM | Kecocokan item dengan kebijakan | Ollama; Gemini opsional |
-| Pembayaran | Payout dan rekonsiliasi | PayPal Sandbox |
+A single durable worker processes claims, retrieves current sheet context, validates receipt extraction and AI output, calculates sen, reserves funds, sends Sandbox payouts, confirms item results, then synchronizes Sheets. Worker recovery uses persisted states and stable payment identity. One process and one writer per spreadsheet are supported; do not scale horizontally without a distributed transaction/lock design.
 
-Pilihan belum final; dependency dan versi belum dipasang.
+Fixture adapters are explicit and synthetic. Sandbox adapters never fall back. google-auth-library handles Sheets auth, LangChain ChatGoogle handles separate structured OCR/decider calls, and native fetch handles Sandbox PayPal. ai/ separates configuration/calls/prompts/schemas; domain/ owns validation and exact net-cost allocation; http/ owns transport/static concerns. A 45-second whole AI-call deadline and one maximum transport retry bound inference. The decider receives evidence, no payment tools, recipient, remaining funds or secrets. Sheets payment/item records use durable fixed ranges and confirmed read-back. See net-cost.md and the AI contracts.
 
-## Alur
-
-API memverifikasi hak akses, menyimpan pengajuan, dan menjadwalkan ekstraksi. Pemohon mengoreksi item. API memasok aturan dipercaya serta data pemohon yang tidak dipercaya ke model.
-
-Hasil model divalidasi. Bendahara meninjau. API menghitung jumlah dari snapshot approval, menjalankan payout, dan merekonsiliasi hasil.
-
-## Batas kepercayaan
-
-Browser tidak memegang secret database/PayPal/model cloud. Model tidak memiliki tool pembayaran. Server memeriksa role, ownership, anggaran, revisi, serta ID aturan.
-
-Teks bon tidak menjadi instruksi sistem. Tugas lama/ulang memiliki ID proses, bukan alasan membuat pembayaran baru.
-
-## Hosting
-
-Model lokal berhenti ketika laptop mati. Untuk demo online mandiri, tempatkan layanan yang diperlukan di luar laptop atau sediakan instruksi lengkap menjalankan proyek sendiri.
-
-AI lokal tidak membuat transaksi PayPal bisa berjalan offline.
+No infrastructure/deployment/training has been provisioned. A laptop-hosted app stops when the process/laptop stops, but its SQLite journal survives restart. Protect and back up the database before external demo use. See integration setup and runbook.

@@ -1,29 +1,7 @@
-# Rencana fine-tuning
+# Deferred training
 
-Status: belum ada dataset latih, model terlatih, atau evaluasi.
+Training from scratch and fine-tuning are not authorized MVP requirements. The implementation supplies current policy and spreadsheet context at inference time. No weights or training dataset are included.
 
-## Tujuan
+If later authorized, use licensed data and human labels for accepted/rejected decisions, reasons and actual rule references. Do not use the model under evaluation as ground truth. Split by original receipt/event so image variants cannot leak across train/validation/test. Measure extraction errors, false acceptance/rejection, citations, latency and costs before claiming improvement. Keep technical failure separate from business outcomes.
 
-Ajarkan penerapan kebijakan terhadap konteks pembelian dan konsistensi format. Aturan terbaru tetap disertakan saat inference.
-
-Input contoh: aturan acara, item, tujuan, dan bukti persetujuan jika tersedia. Target: eligible/ineligible/needs_review, alasan, dan rujukan aturan.
-
-## Sebelum mulai
-
-Pastikan lisensi data/model sesuai. Label ditinjau manusia. Jangan hanya memakai contoh eligible.
-
-Pisahkan train/validation/test berdasarkan asal bon dan acara. Crop/rotasi dari bon yang sama tidak boleh melintasi pembagian. Pertahankan test terpisah dari pemilihan prompt/checkpoint.
-
-## Metode kandidat
-
-LoRA/QLoRA melalui Unsloth atau Hugging Face PEFT. Kapasitas laptop bergantung RAM/VRAM, ukuran model, panjang input, dan konfigurasi. Kredit Runpod dari SDC belum dipastikan hak penggunaannya.
-
-Bandingkan baseline dan fine-tuned pada test yang sama. Ukur salah lolos, salah tolak, kebutuhan klarifikasi, rujukan aturan, waktu, dan biaya. Jangan mengklaim peningkatan tanpa bukti.
-
-Koreksi disimpan sebagai data; model tidak otomatis belajar setiap kali pengguna mengoreksi. Dataset, training, evaluasi, dan deployment mempunyai versi sendiri.
-
-## Referensi
-
-- https://huggingface.co/docs/peft/main/en/conceptual_guides/lora
-- https://unsloth.ai/docs/get-started/fine-tuning-llms-guide
-- https://docs.ollama.com/import
+Corrections do not automatically train the model. Dataset, prompt/model, training and evaluation need separate versions and consent. Unverified sponsor credits are not approved project funds.
