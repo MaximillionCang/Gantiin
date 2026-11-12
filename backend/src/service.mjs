@@ -32,6 +32,7 @@ export class Service {
   }
   list(user) { return this.store.claims().filter(c=>c.event_id===user.event_id&&(user.role==='treasurer'||c.user_id===user.id)).map(c=>this.claimView(c)).reverse(); }
   createClaim(user,input,key) {
+    this.store.assertLease();
     invariant(user.role==='cmt','Only CMT accounts submit receipts.',403);
     invariant(this.event().configured,'Ask the treasurer to configure the event policy first.',409,'setup_required');
     invariant(Object.values(this.readiness(user)).every(Boolean),'Integration not configured. Receipt submission requires Google Sheets, an authorized receipt AI provider, PayPal Sandbox and your verified recipient account.',503,'integration_not_configured');
@@ -50,6 +51,7 @@ export class Service {
     return c;
   }
   savePolicy(user,input) {
+    this.store.assertLease();
     invariant(user.role==='treasurer','Treasurer access required.',403);
     const current=this.event();
     invariant(input.expected_version===current.version,'Policy changed. Reload before saving.',409);
@@ -59,6 +61,7 @@ export class Service {
     return result;
   }
   createMember(user,input) {
+    this.store.assertLease();
     invariant(user.role==='treasurer','Treasurer access required.',403);
     const member={id:randomUUID(),event_id:user.event_id,role:'cmt',name:text(input.name,'Member name',100),email:email(input.email),password:passwordHash(input.password)};
     invariant(!this.store.db.prepare('SELECT id FROM users WHERE email=?').get(member.email),'An account with that email already exists.',409);
@@ -97,6 +100,7 @@ export class Service {
     return {...sheet,reserved_sen:reserved,available_sen:Math.max(0,sheet.remaining_sen-reserved)};
   }
   async processClaim(c) {
+    this.store.assertLease();
     c.processing='processing'; c.error=null; this.store.saveClaim(c);
     try {
       const policy=this.event();
@@ -109,6 +113,7 @@ export class Service {
         c.processing_stage='extracting';this.store.saveClaim(c);
         const row=this.store.db.prepare('SELECT receipt FROM claims WHERE id=?').get(c.id);
         c.extraction_evidence=await this.providers.ai.extract(row.receipt,c.mime);
+        this.store.assertLease();
         c.models={ocr:this.providers.ai.models?.ocr||this.providers.ai.model};c.extracted_at=now();this.store.saveClaim(c);
         invariant(!realAI||confidencePass(c.extraction_evidence?.confidence),'Receipt reading is uncertain. Upload a clearer receipt or retry. No payment was created.',422,'ai_confidence_low');
         c.receipt=validateReceipt(c.extraction_evidence);
@@ -118,10 +123,12 @@ export class Service {
       }
       c.processing_stage='reading_references';this.store.saveClaim(c);
       const budget=await this.budget();
+      this.store.assertLease();
       const references=selectReferences(c.receipt,budget.references);
       if(!c.assessment || realAI&&!c.assessment.items.every(item=>confidencePass(item.confidence)) || c.policy?.version!==policy.version || c.references_digest!==digest(JSON.stringify(references)) || c.recipient_digest!==recipientDigest) {
         c.processing_stage='assessing';this.store.saveClaim(c);
         const output=await this.providers.ai.assess(c.receipt,policy,references,c.context);
+        this.store.assertLease();
         c.assessment=validateAssessment(output,c.receipt,policy,references);
         c.policy=structuredClone(policy);c.references=structuredClone(references);c.model=this.providers.ai.model;c.models={...c.models,decider:this.providers.ai.models?.decider||this.providers.ai.model};c.assessed_at=now();
         c.policy_digest=digest(JSON.stringify(c.policy));c.references_digest=digest(JSON.stringify(c.references));
@@ -138,6 +145,7 @@ export class Service {
       // A second fresh read closes the assessment-to-allocation gap.
       c.processing_stage='allocating';this.store.saveClaim(c);
       const fresh=await this.budget();
+      this.store.assertLease();
       invariant(this.event().version===c.policy.version && digest(JSON.stringify(this.event()))===c.policy_digest,'Policy changed before allocation. Retry the current policy.',409,'policy_changed');
       invariant(digest(JSON.stringify(selectReferences(c.receipt,fresh.references)))===c.references_digest,'Approved references changed during assessment. Retry with current evidence.',409,'references_changed');
       invariant(digest(this.store.user(c.user_id)?.recipient||'')===c.recipient_digest,'Recipient verification changed during assessment. Retry before authorization.',409,'recipient_changed');
@@ -155,15 +163,19 @@ export class Service {
       p.authorization={policy:structuredClone(c.policy),references:structuredClone(c.references),assessment:structuredClone(c.assessment),receipt:structuredClone(c.receipt),models:structuredClone(c.models||{}),...(realAI?{confidence_gate:structuredClone(c.confidence_gate)}:{}),recipient:structuredClone(recipient),amount_sen,items:structuredClone(p.items)};
       p.authorization_digest=digest(JSON.stringify(p.authorization));
       this.store.transaction(()=>{
+        this.store.assertLease();
         invariant(!this.store.payments().some(p=>p.claim_id===c.id),'Claim already has a payment.',409);
         this.store.db.prepare('INSERT INTO payments VALUES(?,?,?,?)').run(p.id,c.id,p.sheet_row,JSON.stringify(p));
         c.payment_id=p.id;c.processing_stage='complete';c.allocation_complete=true;this.store.saveClaim(c);this.store.audit('system','payment_reserved',p.id);
       });
     } catch(error) {
+      if(error.code==='lease_lost')throw error;
+      this.store.assertLease();
       c.processing='processing_failed';c.error={code:error.code||'processing_failed',message:error instanceof AppError?error.message:'Technical processing failed. Retry this claim after checking setup.'};this.store.saveClaim(c);
     }
   }
   async processPayment(p) {
+    this.store.assertLease();
     try {
       if(p.status==='failed') return;
       const c=this.store.claim(p.claim_id);
@@ -171,29 +183,36 @@ export class Service {
       if(p.authorization)invariant(digest(JSON.stringify(p.authorization))===p.authorization_digest&&digest(JSON.stringify(p.items))===p.items_digest&&JSON.stringify(p.items)===JSON.stringify(p.authorization.items)&&digest(JSON.stringify(c.receipt))===digest(JSON.stringify(p.authorization.receipt))&&JSON.stringify(p.recipient)===JSON.stringify(p.authorization.recipient)&&p.amount_sen===p.authorization.amount_sen,'Immutable net-cost authorization changed. Reservation remains held.',503,'reconciliation_required');
       if(p.status==='succeeded') {await this.syncPayment(p);return;}
       // A persisted unknown state covers process death during provider submission.
-      if(!p.provider_batch) {p.status='unknown';this.store.savePayment(p);p.provider_batch=await this.providers.paypal.create(p);p.status='pending';this.store.savePayment(p);}
+      if(!p.provider_batch) {p.status='unknown';this.store.savePayment(p);this.store.assertLease();const batch=await this.providers.paypal.create(p);this.store.assertLease();p.provider_batch=batch;p.status='pending';this.store.savePayment(p);}
       const result=await this.providers.paypal.details(p);
+      this.store.assertLease();
       invariant(result.batch===p.provider_batch && result.sender_item_id===p.id && result.recipient===p.recipient.id && result.amount_sen===p.amount_sen && result.currency==='MYR' && typeof result.item==='string' && result.item.length>0,'Provider result does not match the authorized payment. Reservation remains held.',503,'payment_unknown');
       p.provider_item=result.item;p.provider_status=result.status;p.checked_at=now();p.error=null;
       if(result.status==='SUCCESS') {p.status='succeeded';p.confirmed_at=now();p.sync='sync_pending';this.store.savePayment(p);this.store.audit('system','provider_success_confirmed',p.id);await this.syncPayment(p);}
       else if(['FAILED','RETURNED','BLOCKED','DENIED','CANCELED','REFUNDED','REVERSED'].includes(result.status)) {p.status='failed';p.sync='not_required';p.error={code:'provider_failed',message:`PayPal payout ended with ${result.status}. No automatic replacement payment is scheduled.`};this.store.savePayment(p);}
       else {p.status='pending';this.store.savePayment(p);}
     } catch(error) {
+      if(error.code==='lease_lost')throw error;
+      this.store.assertLease();
       p.error={code:error.code||'payment_unknown',message:error instanceof AppError?error.message:'Provider outcome remains uncertain. Funds are held for reconciliation.'};
       if(p.status==='succeeded') p.sync='sync_pending';
       this.store.savePayment(p);
     }
   }
   async syncPayment(p) {
+    this.store.assertLease();
     const sheet=await this.providers.sheets.read(this.event());
+    this.store.assertLease();
     this.validateLedger(sheet);
-    if(!paymentReflected(p,sheet)) await this.providers.sheets.sync(p);
+    if(!paymentReflected(p,sheet)) {this.store.assertLease();await this.providers.sheets.sync(p);this.store.assertLease();}
     const confirmed=await this.providers.sheets.read(this.event());
+    this.store.assertLease();
     this.validateLedger(confirmed);
     invariant(paymentReflected(p,confirmed),'Spreadsheet has not confirmed payment and reimbursed-item writes.',503,'sync_pending');
     p.sync='synced';p.error=null;this.store.savePayment(p);
   }
   retry(user,id) {
+    this.store.assertLease();
     const c=this.owned(user,id);
     const p=c.payment_id?this.store.payment(c.payment_id):null;
     invariant(c.processing==='processing_failed'||p && (['pending','unknown','reserved'].includes(p.status)||p.status==='succeeded'&&p.sync!=='synced'),'There is no recoverable technical operation for this claim. Unpaid differences are not automatically settled.',409);
@@ -205,8 +224,11 @@ export class Service {
     if(this.ticking) return;
     this.ticking=true;
     try { await this.exclusive(async()=>{
-      for(const c of this.store.claims()) if(!c.allocation_complete && c.processing!=='processing_failed') await this.processClaim(c);
-      for(const p of this.store.payments()) if(p.status!=='failed'&&(p.status!=='succeeded'||p.sync!=='synced')) await this.processPayment(p);
+      this.store.assertLease();
+      const checked=new Set();
+      const reconcile=async()=>{for(const p of this.store.payments())if(!checked.has(p.id)&&p.status!=='failed'&&(p.status!=='succeeded'||p.sync!=='synced')){checked.add(p.id);await this.processPayment(p);}};
+      await reconcile();
+      for(const c of this.store.claims()) if(!c.allocation_complete && c.processing!=='processing_failed') {await this.processClaim(c);await reconcile();}
     }); } finally {this.ticking=false;}
   }
   start() { this.timer=setInterval(()=>this.tick().catch(()=>{}),this.config.workerInterval);this.timer.unref();this.tick().catch(()=>{}); }

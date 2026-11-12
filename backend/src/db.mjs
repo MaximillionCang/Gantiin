@@ -39,14 +39,29 @@ export class Store {
   savePayment(p) { this.db.prepare('UPDATE payments SET data=? WHERE id=?').run(JSON.stringify(p),p.id); }
   audit(actor, action, resource) { this.db.prepare('INSERT INTO audit VALUES(?,?,?,?,?)').run(randomUUID(),now(),actor,action,resource); }
   acquireLease() {
-    this.leaseId = randomUUID();
+    const owner = randomUUID();
     this.transaction(() => {
       const lease = this.db.prepare('SELECT * FROM lease WHERE id=1').get();
       invariant(!lease || lease.expires < Date.now(), 'Another application process holds this database. Stop it or wait 20 seconds after a crash.', 409);
-      this.db.prepare('INSERT INTO lease VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET owner=excluded.owner,expires=excluded.expires').run(this.leaseId, Date.now()+20000);
+      this.db.prepare('INSERT INTO lease VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET owner=excluded.owner,expires=excluded.expires').run(owner, Date.now()+20000);
     });
-    this.heartbeat = setInterval(() => this.db.prepare('UPDATE lease SET expires=? WHERE owner=?').run(Date.now()+20000,this.leaseId), 5000);
+    this.leaseId = owner;this.leaseLost=false;
+    this.heartbeat = setInterval(() => this.renewLease(), 5000);
     this.heartbeat.unref();
+  }
+  assertLease() {
+    if(!this.leaseId)return;
+    const lease=this.db.prepare('SELECT owner,expires FROM lease WHERE id=1').get();
+    invariant(!this.leaseLost&&lease?.owner===this.leaseId&&lease.expires>=Date.now(),'Database ownership was lost. This process must stop; restart only after the other writer has stopped.',409,'lease_lost');
+  }
+  renewLease() {
+    if(!this.leaseId||this.leaseLost)return false;
+    try {
+      const time=Date.now();
+      const result=this.db.prepare('UPDATE lease SET expires=? WHERE id=1 AND owner=? AND expires>=?').run(time+20000,this.leaseId,time);
+      if(result.changes===1)return true;
+    } catch {}
+    this.leaseLost=true;clearInterval(this.heartbeat);return false;
   }
   close() { if (this.heartbeat) { clearInterval(this.heartbeat); this.db.prepare('DELETE FROM lease WHERE owner=?').run(this.leaseId); } this.db.close(); }
 }
