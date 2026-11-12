@@ -4,6 +4,26 @@ import { status, reimbursementStatus } from './src/components/status.mjs';
 import { detailPage as renderClaimDetail } from './src/pages/claim-detail.mjs';
 import { overviewPage, spreadsheetAction } from './src/pages/overview.mjs';
 const app=document.querySelector('#app');
+const themePreferenceKey='gantiin.theme';
+function currentTheme() {return document.documentElement.dataset.theme==='light'?'light':'dark';}
+function brandLogoSource() {return `/assets/gantiin-logo${currentTheme()==='light'?'-light':''}.svg?v=appearance-1`;}
+let appearanceFrame;
+function setAppearance(theme,persist=true) {
+  if(!['light','dark'].includes(theme))return false;
+  cancelAnimationFrame(appearanceFrame);
+  document.documentElement.classList.add('theme-changing');
+  document.documentElement.dataset.theme=theme;
+  appearanceFrame=requestAnimationFrame(()=>{appearanceFrame=requestAnimationFrame(()=>document.documentElement.classList.remove('theme-changing'));});
+  document.querySelector('meta[name="theme-color"]').setAttribute('content',theme==='light'?'#f5f6fb':'#090b14');
+  for(const image of document.querySelectorAll('.brand-logo'))image.src=brandLogoSource();
+  for(const option of document.querySelectorAll('[data-theme-choice]'))option.checked=option.value===theme;
+  let saved=false;
+  if(persist)try {localStorage.setItem(themePreferenceKey,theme);saved=true;} catch {}
+  const status=document.querySelector('#appearance-status');
+  if(status)status.textContent=`${theme==='light'?'Light':'Dark'} mode ${persist?(saved?'saved on this browser.':'applied for this visit.'):'applied.'}`;
+  return saved;
+}
+window.addEventListener('storage',event=>{if(event.key===themePreferenceKey||event.key===null)setAppearance(event.newValue==='light'?'light':'dark',false);});
 const emailPreferenceKey='gantiin.committee-email';
 function readEmailPreference() {
   try {const saved=JSON.parse(localStorage.getItem(emailPreferenceKey));const enabled=saved?.enabled!==false;return {enabled,email:enabled&&typeof saved?.email==='string'&&saved.email.length<=180?saved.email:''};}
@@ -12,7 +32,7 @@ function readEmailPreference() {
 const emailPreference=readEmailPreference();
 function readDemoMode() {try{return sessionStorage.getItem('gantiin.demo')==='true';}catch{return false;}}
 function readSidebarPreference() {try{return sessionStorage.getItem('gantiin.sidebar-collapsed')==='true';}catch{return false;}}
-const state={session:null,event:null,demo:readDemoMode(),menu:false,sidebarCollapsed:readSidebarPreference(),settingsOpen:false,loginRole:null,rememberEmail:emailPreference.enabled,committeeEmail:emailPreference.email,routeToken:0,claimList:[],history:{user:null,query:'',status:'all',sort:'date-desc'},selected:null,preview:null,submissionKey:crypto.randomUUID()};
+const state={session:null,event:null,demo:readDemoMode(),menu:false,sidebarCollapsed:readSidebarPreference(),settingsOpen:false,accountOpen:false,loginRole:null,rememberEmail:emailPreference.enabled,committeeEmail:emailPreference.email,routeToken:0,claimList:[],history:{user:null,query:'',status:'all',sort:'date-desc'},selected:null,preview:null,submissionKey:crypto.randomUUID()};
 function setDemoMode(enabled) {state.demo=enabled;try{if(enabled)sessionStorage.setItem('gantiin.demo','true');else sessionStorage.removeItem('gantiin.demo');}catch{}}
 const api=createApi(state,{onUnauthorized:()=>{setDemoMode(false);state.session=null;location.hash='/login';}});
 function saveEmailPreference(email=state.committeeEmail) {
@@ -82,7 +102,14 @@ async function submitForm(form,fn) {
 function success(form,message) {const box=form.querySelector('[data-message]');box.setAttribute('role','status');box.textContent=message;}
 function route() {return (location.hash.slice(1)||'').split('?')[0];}
 const menuItems=()=>state.session.user.role==='treasurer'?[['/budget','Overview'],['/history','History']]:[['/submit','Submit Receipt'],['/history','History']];
-const settingsItems=()=>state.session.user.role==='treasurer'?[['/settings/account','Account'],['/settings/event','Event Policy'],['/settings/members','Committee Members'],['/settings/connections','Connections']]:[['/settings/account','Account']];
+const settingsItems=()=>[['/settings/account','Account'],['/settings/preferences','Personal preferences'],...(state.session.user.role==='treasurer'?[['/settings/event','Event Policy'],['/settings/members','Committee Members'],['/settings/connections','Connections']]:[])];
+const accountItems=()=>state.session.demo?[]:[['/settings/account/password','Change password'],['/settings/account/email','Email']];
+function settingsNavigation(current) {
+  return settingsItems().map(([href,name])=>{
+    if(href!=='/settings/account'||state.session.demo)return `<a href="#${href}" ${current===href?'aria-current="page"':''}>${name}</a>`;
+    return `<div class="account-nav-group"><div class="settings-nav-row account-nav-row"><a href="#${href}" ${current.startsWith('/settings/account/')?'aria-current="true"':''}>${name}</a><button type="button" data-action="account-toggle" aria-label="Toggle account sections" aria-controls="account-navigation" aria-expanded="${state.accountOpen}">${navigationIcon('chevron')}</button></div><nav class="account-subnav" id="account-navigation" aria-label="Account sections" ${!state.accountOpen?'hidden':''}>${accountItems().map(([path,label])=>`<a href="#${path}" ${current===path?'aria-current="page"':''}>${label}</a>`).join('')}</nav></div>`;
+  }).join('');
+}
 function navigationIcon(name) {
   const paths={budget:'<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18m-6 4h6m-3 3h.01"/>',history:'<path d="M3 10a9 9 0 1 1 2 8M3 4v6h6m3-3v5l3 2"/>',settings:'<path d="m9 3-.7 2.2-2 .9-2.1-.5L2 9l1.5 1.7v2.6L2 15l2.2 3.4 2.1-.5 2 .9L9 21h4l.7-2.2 2-.9 2.1.5L20 15l-1.5-1.7v-2.6L20 9l-2.2-3.4-2.1.5-2-.9L13 3Z"/><circle cx="11" cy="12" r="3"/>',submit:'<path d="M6 3h9l4 4v14l-3-2-3 2-3-2-4 2V3Zm9 0v5h4M9 12h6m-6 4h4"/>',logout:'<path d="M10 4H4v16h6m4-12 4 4-4 4m-7-4h11"/>'};
   paths.overview='<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>';
@@ -100,17 +127,18 @@ function navigationIcon(name) {
   paths.collapse='<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16m7-11-3 3 3 3"/>';
   return `<svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`;
 }
-function brandLogo(className='brand-logo') {
-  return `<img class="${className}" src="/assets/gantiin-logo.svg?v=32f9ba39d938" width="2172" height="724" alt="Gantiin" decoding="async">`;
+function brandLogo(className='brand-logo',collapsed=false) {
+  return `<picture class="brand-picture">${collapsed?'<source media="(min-width:801px)" srcset="/assets/gantiin-symbol.svg?v=cyan-violet-1">':''}<img class="${className}" src="${brandLogoSource()}" width="884" height="616" alt="Gantiin" decoding="async"></picture>`;
 }
 function shell() {
   const {user}=state.session;
   const current=route();
   const greeting=user.role==='treasurer'?'Treasurer':esc(user.name);
   if(current.startsWith('/settings/'))state.settingsOpen=true;
+  if(current.startsWith('/settings/account/'))state.accountOpen=true;
   app.innerHTML=`<div class="workspace ${state.sidebarCollapsed?'sidebar-collapsed':''}"><aside class="sidebar">
-    <header><div class="sidebar-brand">${brandLogo()}</div><button class="sidebar-toggle" data-action="sidebar-collapse" aria-label="${state.sidebarCollapsed?'Expand':'Collapse'} sidebar" title="${state.sidebarCollapsed?'Expand':'Collapse'} sidebar">${navigationIcon('collapse')}</button><button class="menu-toggle" data-action="menu" aria-controls="navigation" aria-expanded="${state.menu}">Menu</button></header>
-    <div class="sidebar-navigation" id="navigation" ${!state.menu&&matchMedia('(max-width:800px)').matches?'hidden':''}><nav aria-label="Main navigation">${menuItems().map(([href,name])=>`<a href="#${href}" aria-label="${name}" title="${name}" ${current===href?'aria-current="page"':''}>${navigationIcon(href==='/budget'?'overview':href==='/history'?'history':'submit')}<span>${name}</span></a>`).join('')}<div class="settings-nav-row"><a href="#/settings/account" aria-label="Settings" title="Settings" ${current.startsWith('/settings/')?'aria-current="page"':''}>${navigationIcon('settings')}<span>Settings</span></a><button data-action="settings-toggle" aria-label="Toggle settings sections" aria-controls="settings-navigation" aria-expanded="${state.settingsOpen}">${navigationIcon('chevron')}</button></div></nav><nav class="settings-subnav" id="settings-navigation" aria-label="Settings sections" ${!state.settingsOpen?'hidden':''}>${settingsItems().map(([href,name])=>`<a href="#${href}" ${current===href?'aria-current="page"':''}>${name}</a>`).join('')}</nav></div>
+    <header><div class="sidebar-brand">${brandLogo('brand-logo',state.sidebarCollapsed)}</div><button class="sidebar-toggle" data-action="sidebar-collapse" aria-label="${state.sidebarCollapsed?'Expand':'Collapse'} sidebar" title="${state.sidebarCollapsed?'Expand':'Collapse'} sidebar">${navigationIcon('collapse')}</button><button class="menu-toggle" data-action="menu" aria-controls="navigation" aria-expanded="${state.menu}">Menu</button></header>
+    <div class="sidebar-navigation" id="navigation" ${!state.menu&&matchMedia('(max-width:800px)').matches?'hidden':''}><nav aria-label="Main navigation">${menuItems().map(([href,name])=>`<a href="#${href}" aria-label="${name}" title="${name}" ${current===href?'aria-current="page"':''}>${navigationIcon(href==='/budget'?'overview':href==='/history'?'history':'submit')}<span>${name}</span></a>`).join('')}<div class="settings-nav-row"><a href="#/settings/account" aria-label="Settings" title="Settings" ${current.startsWith('/settings/')?'aria-current="page"':''}>${navigationIcon('settings')}<span>Settings</span></a><button data-action="settings-toggle" aria-label="Toggle settings sections" aria-controls="settings-navigation" aria-expanded="${state.settingsOpen}">${navigationIcon('chevron')}</button></div></nav><nav class="settings-subnav" id="settings-navigation" aria-label="Settings sections" ${!state.settingsOpen?'hidden':''}>${settingsNavigation(current)}</nav></div>
     <footer><button data-action="logout" aria-label="${state.session.demo?'Exit demo':'Sign out'}" title="${state.session.demo?'Exit demo':'Sign out'}">${navigationIcon('logout')}<span>${state.session.demo?'Exit demo':'Sign out'}</span></button></footer>
     </aside><div class="workspace-body"><header class="workspace-topbar"><div class="welcome"><span class="welcome-avatar">${navigationIcon('person')}</span><p>Welcome, <strong>${greeting}</strong></p>${state.session.demo?'<span class="demo-label">Simulation</span>':''}</div></header><main id="main" class="workspace-main"><div class="page" id="page"><div class="loading" role="status">Loading your workspace...</div></div></main></div>${state.session.demo?demoResetDialog():''}</div>`;
 }
@@ -118,17 +146,27 @@ function demoResetButton() {return state.session.demo?'<button type="button" cla
 function demoResetDialog() {return `<dialog class="confirm-dialog" id="demo-reset-dialog" aria-labelledby="demo-reset-title"><form data-form="demo-reset" novalidate><h2 id="demo-reset-title">Reset demo?</h2><p>Delete all demo receipts and submissions.</p>${formMessage}<div class="actions"><button type="button" data-action="close-demo-reset" autofocus>Cancel</button><button type="submit" class="primary">Reset demo</button></div></form></dialog>`;}
 function heading(title,description,action='') {const tag=route().startsWith('/settings/')?'h2':'h1';return `<div class="page-heading"><div><${tag} tabindex="-1">${title}</${tag}>${description?`<p class="page-description">${description}</p>`:''}</div>${action}</div>`;}
 function settingsPage(content) {return `<header class="settings-heading"><h1 tabindex="-1">Settings</h1></header>${content}`;}
-function authBackground() {return '<img class="login-background" src="/assets/login-finance-hd.png" width="1536" height="1024" alt="" decoding="async" fetchpriority="high">';}
+function preferencesPage() {
+  const theme=currentTheme();
+  return `${heading('Personal preferences','')}<section class="panel preferences-panel" aria-label="Appearance preferences"><fieldset class="appearance-fieldset"><legend>Appearance</legend><div class="appearance-options">${[['dark','Dark','Default'],['light','Light','']].map(([value,name,note])=>`<label class="appearance-option" for="theme-${value}"><input type="radio" id="theme-${value}" name="appearance" value="${value}" data-theme-choice ${theme===value?'checked':''}><span><strong>${name}</strong>${note?`<span class="small muted">${note}</span>`:''}</span></label>`).join('')}</div></fieldset><p id="appearance-status" class="small muted" role="status">Applies to this browser.</p></section>`;
+}
+function loginArtwork(role) {
+  if(role==='committee')return {src:'/assets/login-committee.svg',width:1920,height:1080};
+  if(role==='treasurer')return {src:'/assets/login-treasurer.svg',width:1920,height:1080};
+  return {src:'/assets/login-finance-hd.png',width:1536,height:1024};
+}
+function authBackground(role) {const image=loginArtwork(role);return `<img class="login-background" src="${image.src}" width="${image.width}" height="${image.height}" alt="" decoding="async" fetchpriority="high">`;}
 function paypalMark() {return '<img src="/assets/paypal-mark.svg" width="24" height="24" alt="" aria-hidden="true">';}
 function login() {
   state.loginRole||='committee';
   const role=state.loginRole;
+  const image=loginArtwork(role);
   document.title=`${role==='treasurer'?'Treasurer':'Committee'} sign in | Gantiin`;
   const paypalFailed=location.hash.includes('paypal=failed');
-  app.innerHTML=`<div class="login">${authBackground()}<main id="main" class="login-main">
+  app.innerHTML=`<div class="login" data-role="${role}">${authBackground(role)}<main id="main" class="login-main">
     <header class="login-topbar">${brandLogo()}</header>
     <section class="login-card" aria-labelledby="login-title">
-      <div class="login-visual" aria-hidden="true"><img src="/assets/login-finance-hd.png" width="1536" height="1024" alt="" decoding="async" fetchpriority="high"></div><div class="login-form">
+      <div class="login-visual"><img src="${image.src}" width="${image.width}" height="${image.height}" alt="" decoding="async" fetchpriority="high"><p class="login-slogan"><span>&ldquo;Snap It. Claim It.</span> <span>Gantiin.&rdquo;</span></p></div><div class="login-form">
       <header class="login-heading"><h1 id="login-title">Welcome</h1></header>
       <div class="role-switch" role="tablist" aria-label="Sign-in role" data-role="${role}">
         <span class="role-indicator" aria-hidden="true"></span>
@@ -160,6 +198,9 @@ function recoveryPage() {
 function setLoginRole(role) {
   if(!['treasurer','committee'].includes(role)||role===state.loginRole)return;
   state.loginRole=role;
+  document.querySelector('.login').dataset.role=role;
+  const image=loginArtwork(role);
+  for(const element of document.querySelectorAll('.login-background,.login-visual img')) {element.src=image.src;element.width=image.width;element.height=image.height;}
   const tabs=document.querySelector('.role-switch');
   tabs.dataset.role=role;
   for(const tab of tabs.querySelectorAll('[role="tab"]')) {const selected=tab.dataset.role===role;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
@@ -207,19 +248,20 @@ function policyPage() {
       <div class="actions event-save"><button type="submit" class="primary">${navigationIcon('check')}<span>Save event</span></button></div>
     </form></section>`;
 }
-function accountPage() {
+function accountPage(section='password') {
   const u=state.session.user;
   if(state.session.demo)return `${heading('Account','')}<section class="panel"><dl class="detail-list"><dt>Name</dt><dd>${esc(u.name)}</dd><dt>Event</dt><dd>${esc(state.event.name)}</dd></dl><div class="actions">${demoResetButton()}</div></section>`;
-  const passwordPanel=`<section class="panel password-panel"><div class="section-heading"><span class="section-icon rose-icon">${navigationIcon('lock')}</span><h2 id="account-password-title">Change password</h2></div><form data-form="password" aria-labelledby="account-password-title" novalidate>${formMessage}<div class="password-inputs">${field('current-password','Current password','password','required autocomplete="current-password"')}${field('new-password','New password','password','required minlength="12" maxlength="128" autocomplete="new-password"','12+ characters')}</div><div class="password-actions"><button type="submit" class="primary">Change password</button></div></form></section>`;
-  if(u.role==='treasurer')return `${heading('Account','')}<div class="account-treasurer">${passwordPanel}</div>`;
+  if(section==='password')return `${heading('Change password','')}<div class="account-password"><section class="panel password-panel"><form data-form="password" aria-label="Change password" novalidate>${formMessage}<div class="password-inputs">${field('current-password','Current password','password','required autocomplete="current-password"')}${field('new-password','New password','password','required minlength="12" maxlength="128" autocomplete="new-password"','12+ characters')}</div><div class="password-actions"><button type="submit" class="primary">Change password</button></div></form></section></div>`;
+  const emailPanel=`<section class="panel account-email-panel" aria-label="Account email">${field('account-email','Current email','email',`value="${esc(u.email)}" readonly autocomplete="off"`)}</section>`;
+  if(u.role==='treasurer')return `${heading('Email','')}<div class="account-email">${emailPanel}</div>`;
   const linkReady=state.session.paypal_login&&(u.role==='cmt'||state.session.paypal_sender_configured);
   const linkForm=`<form class="paypal-link-form" data-form="paypal" novalidate>${formMessage}${field('link-password','Website password','password','required autocomplete="current-password"')}<button type="submit">${navigationIcon('key')}<span>Link PayPal</span></button></form>`;
-  return `${heading('Account','')}<div class="account-grid"><section class="panel account-profile" aria-label="Account details"><header class="profile-heading"><span class="profile-avatar">${navigationIcon('person')}</span><div><h2>${u.role==='treasurer'?'Treasurer':esc(u.name)}</h2>${u.role==='cmt'?`<p class="small muted">${esc(u.email)}</p>`:'<p class="small muted">Shared account</p>'}</div></header>
+  return `${heading('Email','')}<div class="account-grid">${emailPanel}<section class="panel account-profile" aria-label="PayPal account">
     <div class="account-paypal"><div class="service-heading"><span class="section-icon mist-icon">${navigationIcon('key')}</span><h3>PayPal sign-in</h3><span class="connection-status ${u.paypal_linked?'is-ready':'is-missing'}"><span aria-hidden="true"></span>${u.paypal_linked?'Linked':'Not linked'}</span></div>
     ${linkReady?(u.paypal_linked?`<details class="relink-account"><summary>Change linked account</summary>${linkForm}</details>`:linkForm):'<button disabled title="PayPal sign-in is not configured">Link PayPal</button>'}
     ${u.role==='cmt'?`<div class="recipient-state"><span>Reimbursement account</span><span class="connection-status ${u.recipient?.verified?'is-ready':'is-missing'}"><span aria-hidden="true"></span>${u.recipient?.verified?'Ready':'Setup required'}</span></div>`:''}
     ${location.hash.includes('paypal=linked')?'<p role="status" class="linked-notice">PayPal linked.</p>':''}</div></section>
-    ${passwordPanel}</div>`;
+    </div>`;
 }
 function connectionsPage(integrations) {
   const demo=state.session.mode==='fixture';
@@ -247,9 +289,10 @@ async function render() {
     state.event.insufficient_context??='reject';
     if(token!==state.routeToken)return;
     const current=route();
-    const legacy={'/account':'/settings/account','/members':'/settings/members','/policy':'/settings/event','/settings':'/settings/account'};
+    const accountLanding=state.session.demo?'/settings/account':location.hash.includes('paypal=')?'/settings/account/email':'/settings/account/password';
+    const legacy={'/account':accountLanding,'/members':'/settings/members','/policy':'/settings/event','/settings':accountLanding,...(!state.session.demo?{'/settings/account':accountLanding}:{})};
     if(legacy[current]) {location.hash=legacy[current]+(location.hash.includes('?')?'?'+location.hash.split('?')[1]:'');return;}
-    const allowed=[...menuItems().map(i=>i[0]),...settingsItems().map(i=>i[0])];
+    const allowed=[...menuItems().map(i=>i[0]),...settingsItems().map(i=>i[0]),...accountItems().map(i=>i[0])];
     if(!allowed.includes(current)&&!current.startsWith('/claim/')) {location.hash=state.session.user.role==='treasurer'?'/budget':'/submit';return;}
     shell();const page=document.querySelector('#page');let html;let claims;
     if(current==='/submit') html=submitPage();
@@ -257,7 +300,9 @@ async function render() {
     else if(current==='/budget') {if(state.session.mode==='sandbox'&&!state.session.integrations?.sheets)html=budgetSetupPage(await api('/integrations'));else{const [budget,records]=await Promise.all([api('/budget'),api('/claims')]);html=budgetPage(budget,null,records);}}
     else if(current==='/settings/members') html=settingsPage(membersPage(await api('/members')));
     else if(current==='/settings/event') html=settingsPage(policyPage());
-    else if(current==='/settings/account') html=settingsPage(accountPage());
+    else if(current==='/settings/account'||current==='/settings/account/password') html=settingsPage(accountPage());
+    else if(current==='/settings/account/email') html=settingsPage(accountPage('email'));
+    else if(current==='/settings/preferences') html=settingsPage(preferencesPage());
     else if(current==='/settings/connections') html=settingsPage(connectionsPage(await api('/integrations')));
     else if(current.startsWith('/claim/')) {const claim=await api(`/claims/${current.split('/')[2]}`);state.detailSignature=JSON.stringify(claim);html=renderClaimDetail(claim,{heading,icon:navigationIcon,apiPrefix:state.demo?'/api/demo-cmt':'/api'});}
     if(token!==state.routeToken)return;
@@ -266,7 +311,7 @@ async function render() {
       const notice=document.createElement('div');notice.id='integration-notice';notice.className='note';notice.setAttribute('role','status');notice.innerHTML='<strong>Integration not configured</strong>';
       const form=page.querySelector('form');form.prepend(notice);const button=form.querySelector('button[type="submit"]');button.disabled=true;button.setAttribute('aria-describedby',notice.id);
     }
-    if(current==='/settings/account'&&location.hash.includes('paypal=failed')){const notice=document.createElement('p');notice.className='note';notice.setAttribute('role','alert');notice.textContent='PayPal identity did not match the configured account. Try linking again.';page.querySelector('.page-heading').insertAdjacentElement('afterend',notice);}
+    if(current==='/settings/account/email'&&location.hash.includes('paypal=failed')){const notice=document.createElement('p');notice.className='note';notice.setAttribute('role','alert');notice.textContent='PayPal identity did not match the configured account. Try linking again.';page.querySelector('.page-heading').insertAdjacentElement('afterend',notice);}
     const h=page.querySelector('h1');document.title=`${h?.textContent||'Workspace'} | Gantiin`;
     h?.focus({preventScroll:true});
   } catch(error) {
@@ -368,8 +413,9 @@ app.addEventListener('click',async event=>{
       case 'login-role': {setLoginRole(button.dataset.role);break;}
       case 'toggle-password': {const input=document.getElementById(button.dataset.input);const show=input.type==='password';input.type=show?'text':'password';button.setAttribute('aria-label',show?'Hide password':'Show password');button.setAttribute('aria-pressed',String(show));break;}
       case 'menu': {state.menu=!state.menu;button.setAttribute('aria-expanded',String(state.menu));document.querySelector('#navigation').hidden=!state.menu;break;}
-      case 'sidebar-collapse': {state.sidebarCollapsed=!state.sidebarCollapsed;try{sessionStorage.setItem('gantiin.sidebar-collapsed',String(state.sidebarCollapsed));}catch{}document.querySelector('.workspace').classList.toggle('sidebar-collapsed',state.sidebarCollapsed);button.setAttribute('aria-label',`${state.sidebarCollapsed?'Expand':'Collapse'} sidebar`);button.title=button.getAttribute('aria-label');break;}
-      case 'settings-toggle': {if(state.sidebarCollapsed){state.sidebarCollapsed=false;try{sessionStorage.setItem('gantiin.sidebar-collapsed','false');}catch{}document.querySelector('.workspace').classList.remove('sidebar-collapsed');const collapse=document.querySelector('.sidebar-toggle');collapse.setAttribute('aria-label','Collapse sidebar');collapse.title='Collapse sidebar';}state.settingsOpen=!state.settingsOpen;document.querySelector('#settings-navigation').hidden=!state.settingsOpen;button.setAttribute('aria-expanded',String(state.settingsOpen));break;}
+      case 'sidebar-collapse': {state.sidebarCollapsed=!state.sidebarCollapsed;try{sessionStorage.setItem('gantiin.sidebar-collapsed',String(state.sidebarCollapsed));}catch{}document.querySelector('.workspace').classList.toggle('sidebar-collapsed',state.sidebarCollapsed);document.querySelector('.sidebar-brand').innerHTML=brandLogo('brand-logo',state.sidebarCollapsed);button.setAttribute('aria-label',`${state.sidebarCollapsed?'Expand':'Collapse'} sidebar`);button.title=button.getAttribute('aria-label');break;}
+      case 'settings-toggle': {if(state.sidebarCollapsed){state.sidebarCollapsed=false;try{sessionStorage.setItem('gantiin.sidebar-collapsed','false');}catch{}document.querySelector('.workspace').classList.remove('sidebar-collapsed');document.querySelector('.sidebar-brand').innerHTML=brandLogo();const collapse=document.querySelector('.sidebar-toggle');collapse.setAttribute('aria-label','Collapse sidebar');collapse.title='Collapse sidebar';}state.settingsOpen=!state.settingsOpen;document.querySelector('#settings-navigation').hidden=!state.settingsOpen;button.setAttribute('aria-expanded',String(state.settingsOpen));break;}
+      case 'account-toggle': {state.accountOpen=!state.accountOpen;document.querySelector('#account-navigation').hidden=!state.accountOpen;button.setAttribute('aria-expanded',String(state.accountOpen));break;}
       case 'logout': {await api('/logout',{method:'POST'});setDemoMode(false);state.session=null;state.selected=null;state.menu=false;state.loginRole=null;location.hash='/login';await render();break;}
       case 'demo-sample': {button.disabled=true;const response=await fetch('/api/demo-cmt/sample-receipt',{credentials:'same-origin'});if(!response.ok)throw new Error('The sample receipt is unavailable. Try again.');await selectFile(new File([await response.blob()],'01-printing-and-registration.png',{type:'image/png'}));break;}
       case 'open-demo-reset': {document.querySelector('#demo-reset-dialog').showModal();break;}
@@ -383,7 +429,14 @@ app.addEventListener('click',async event=>{
   } catch(error) {const form=button.closest('form');if(form)showFormError(form,error.message);else{const message=document.createElement('div');message.className='note';message.setAttribute('role','alert');message.textContent=error.message;button.insertAdjacentElement('afterend',message);}}
   finally {button.disabled=false;}
 });
-app.addEventListener('change',event=>{if(event.target.id==='receipt')selectFile(event.target.files[0]).catch(error=>showFormError(event.target.form,error.message));if(['history-filter','history-sort'].includes(event.target.id))filterHistory();if(event.target.id==='remember-email'){state.rememberEmail=event.target.checked;saveEmailPreference();}});
+app.addEventListener('change',event=>{
+  if(event.target.matches('[data-theme-choice]')) {
+    setAppearance(event.target.value);
+  }
+  if(event.target.id==='receipt')selectFile(event.target.files[0]).catch(error=>showFormError(event.target.form,error.message));
+  if(['history-filter','history-sort'].includes(event.target.id))filterHistory();
+  if(event.target.id==='remember-email'){state.rememberEmail=event.target.checked;saveEmailPreference();}
+});
 for(const type of ['dragenter','dragover'])app.addEventListener(type,event=>{if(!event.dataTransfer?.types.includes('Files'))return;event.preventDefault();const zone=event.target.closest('[data-dropzone]');if(zone){zone.classList.add('is-dragging');event.dataTransfer.dropEffect='copy';}});
 app.addEventListener('dragleave',event=>{const zone=event.target.closest('[data-dropzone]');if(zone&&!zone.contains(event.relatedTarget))zone.classList.remove('is-dragging');});
 app.addEventListener('drop',event=>{if(!event.dataTransfer?.types.includes('Files'))return;event.preventDefault();const zone=event.target.closest('[data-dropzone]');document.querySelectorAll('.is-dragging').forEach(el=>el.classList.remove('is-dragging'));if(!zone)return;const files=event.dataTransfer.files;if(files.length!==1){showFormError(zone.closest('form'),'Choose one receipt at a time.');return;}selectFile(files[0]).catch(error=>showFormError(zone.closest('form'),error.message));});
