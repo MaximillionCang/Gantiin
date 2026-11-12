@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GoogleSheets, BUDGET_FORMULA } from '../apps/api/src/adapters/google.mjs';
-import { PayPalSandbox } from '../apps/api/src/adapters/paypal.mjs';
-import { Gemini } from '../apps/api/src/adapters/gemini.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
+import { GoogleSheets, BUDGET_FORMULA } from '../backend/src/adapters/google.mjs';
+import { PayPalSandbox } from '../backend/src/adapters/paypal.mjs';
+import { Gemini } from '../backend/src/adapters/gemini.mjs';
+import { configuration } from '../backend/src/config.mjs';
 import { extracted } from './helpers/ai.mjs';
-import { TRANSACTION_HEADERS, ITEM_HEADERS, itemRecords, itemValues, parseItemRow } from '../apps/api/src/adapters/sheets-contract.mjs';
-import { reimbursementItems } from '../apps/api/src/domain/allocation.mjs';
-import { validateReceipt } from '../apps/api/src/domain/receipt.mjs';
+import { TRANSACTION_HEADERS, ITEM_HEADERS, itemRecords, itemValues, parseItemRow } from '../backend/src/adapters/sheets-contract.mjs';
+import { reimbursementItems } from '../backend/src/domain/allocation.mjs';
+import { validateReceipt } from '../backend/src/domain/receipt.mjs';
 
 test('Google adapter contract: protected formula, integer budget, approved references and fixed-row write',async()=>{
   const sheets=new GoogleSheets(configuration({}));const calls=[];

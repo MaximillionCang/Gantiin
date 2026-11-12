@@ -1,7 +1,7 @@
-import { configuration } from '../apps/api/src/config.mjs';
-import { GoogleSheets, BUDGET_FORMULA } from '../apps/api/src/adapters/google.mjs';
-import { invariant, money } from '../apps/api/src/domain.mjs';
-import { TRANSACTION_HEADERS, ITEM_HEADERS } from '../apps/api/src/adapters/sheets-contract.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { GoogleSheets, BUDGET_FORMULA } from '../backend/src/adapters/google.mjs';
+import { invariant, money } from '../backend/src/domain.mjs';
+import { TRANSACTION_HEADERS, ITEM_HEADERS } from '../backend/src/adapters/sheets-contract.mjs';
 
 const config=configuration();
 invariant(config.mode==='sandbox'&&process.argv.includes('--initialize-empty'),'Use Sandbox and --initialize-empty for a dedicated EMPTY test spreadsheet. This writes five tabs and protects financial tabs.');

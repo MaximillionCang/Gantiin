@@ -6,7 +6,7 @@ Run npm test for Node behavior/HTTP tests, npm run check for source checks, npm 
 
 BUDGET_SOURCE defaults to google, including when INTEGRATION_MODE is fixture. The real owner sheet is currently empty and has no financial schema, so the UI must show Unavailable. Never initialize it or display a sample balance to finish development. Isolated test configuration explicitly selects fixture; fixture payouts are disabled with the real Google budget.
 
-Source: apps/api/src for server/domain/adapters, apps/web for browser UI, scripts for local setup/probes, tests for acceptance behavior. The selected SQLite API requires Node 24.16+. This is a single-process local hackathon application, not a multi-instance production service.
+Source: backend/src for server/domain/adapters, apps/web for browser UI, scripts for local setup/probes, tests for acceptance behavior. The selected SQLite API requires Node 24.16+. This is a single-process local hackathon application, not a multi-instance production service.
 
 Keep .env and data/runtime private. No secrets are passed in command-line arguments. Configuration and provider errors fail closed. Use synthetic receipts only; do not upload private data to a cloud model without authorization.
 

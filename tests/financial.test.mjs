@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { Store } from '../apps/api/src/db.mjs';
-import { Service } from '../apps/api/src/service.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { adapters } from '../apps/api/src/adapters/index.mjs';
-import { validateReceipt } from '../apps/api/src/domain/receipt.mjs';
-import { proportional } from '../apps/api/src/domain/allocation.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { Service } from '../backend/src/service.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { adapters } from '../backend/src/adapters/index.mjs';
+import { validateReceipt } from '../backend/src/domain/receipt.mjs';
+import { proportional } from '../backend/src/domain/allocation.mjs';
 import { seed } from '../scripts/setup.mjs';
 import { extracted } from './helpers/ai.mjs';
 
@@ -18,7 +18,7 @@ function harness(t,{funding=10000,receipt=raw()}={}) {
   const store=new Store();seed(store,{demo:true,password:'Synthetic-only-password42',funding});t.after(()=>store.close());
   const config=configuration({BUDGET_SOURCE:'fixture'});const providers=adapters(store,config);providers.ai.extract=async()=>structuredClone(receipt);
   const service=new Service(store,providers,config);const users=store.users().filter(u=>u.role==='cmt');
-  const submit=(file='mixed.png',user=users[0])=>service.createClaim(user,{receipt_base64:readFileSync(`apps/web/demo/${file}`).toString('base64')},crypto.randomUUID());
+  const submit=(file='mixed.png',user=users[0])=>service.createClaim(user,{receipt_base64:readFileSync(`frontend/demo/${file}`).toString('base64')},crypto.randomUUID());
   return {store,providers,service,users,submit};
 }
 test('required RM80 accepted + RM20 rejected - shared RM10 yields printed RM90 and eligible RM72',async t=>{

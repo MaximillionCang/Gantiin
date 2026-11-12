@@ -4,7 +4,7 @@ import { digest, invariant, now } from '../domain.mjs';
 import { itemRecords } from './sheets-contract.mjs';
 
 export function fixtureCatalog() {
-  return JSON.parse(readFileSync(new URL('../../../../data/examples/receipts.json', import.meta.url), 'utf8'));
+  return JSON.parse(readFileSync(new URL('../../../data/examples/receipts.json', import.meta.url), 'utf8'));
 }
 export class FixtureSheets {
   constructor(store) { this.store = store; this.failRead = false; this.failSync = false; this.loseWriteResponse = false; }
@@ -30,7 +30,7 @@ export class FixtureAI {
   async extract(bytes) {
     invariant(!this.fail, 'Synthetic AI unavailable.', 503, 'extraction_failed');
     const catalog = fixtureCatalog();
-    const fixture = catalog.find(f => digest(readFileSync(resolve('apps/web/demo',f.file))) === digest(bytes));
+    const fixture = catalog.find(f => digest(readFileSync(resolve('frontend/demo',f.file))) === digest(bytes));
     invariant(fixture, 'Fixture mode only reads the supplied synthetic receipt images. Configure Sandbox AI for other PNG/JPEG receipts.', 422, 'extraction_failed');
     return {...structuredClone(fixture.receipt),confidence:1};
   }

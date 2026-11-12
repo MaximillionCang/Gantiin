@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, mkdirSync, mkdtempSync } from 'node:fs';
 import { resolve, join } from 'node:path';
-import { Store } from '../apps/api/src/db.mjs';
-import { Service } from '../apps/api/src/service.mjs';
-import { adapters } from '../apps/api/src/adapters/index.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { Service } from '../backend/src/service.mjs';
+import { adapters } from '../backend/src/adapters/index.mjs';
+import { configuration } from '../backend/src/config.mjs';
 import { seed } from '../scripts/setup.mjs';
-import { money, fromDecimal, validateReceipt, validateAssessment, validatePolicy, receiptBytes } from '../apps/api/src/domain.mjs';
+import { money, fromDecimal, validateReceipt, validateAssessment, validatePolicy, receiptBytes } from '../backend/src/domain.mjs';
 
 function harness(t,{funding=10000,store=new Store()}={}) {
   seed(store,{demo:true,password:'Synthetic-only-password42',funding});
@@ -15,7 +15,7 @@ function harness(t,{funding=10000,store=new Store()}={}) {
   t.after(()=>store.close());
   return {store,providers,service,cmt:store.users().find(u=>u.role==='cmt'),other:store.users().filter(u=>u.role==='cmt')[1],treasurer:store.users().find(u=>u.role==='treasurer')};
 }
-const input=(file='mixed.png',context='Synthetic event purchases for event printing and registration use.')=>({receipt_base64:readFileSync(`apps/web/demo/${file}`).toString('base64'),context});
+const input=(file='mixed.png',context='Synthetic event purchases for event printing and registration use.')=>({receipt_base64:readFileSync(`frontend/demo/${file}`).toString('base64'),context});
 const submit=(h,file='mixed.png',user=h.cmt,key=crypto.randomUUID())=>h.service.createClaim(user,input(file),key);
 
 test('money rejects fractions, negatives, unsafe/oversized values; parses exact provider cents',()=>{

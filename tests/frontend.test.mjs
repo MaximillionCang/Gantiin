@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { overviewStats, overviewPage, spreadsheetAction } from '../apps/web/src/pages/overview.mjs';
-import { createApi } from '../apps/web/src/lib/api.mjs';
-import { detailPage } from '../apps/web/src/pages/claim-detail.mjs';
-import { reimbursementStatus } from '../apps/web/src/components/status.mjs';
+import { overviewStats, overviewPage, spreadsheetAction } from '../frontend/src/pages/overview.mjs';
+import { createApi } from '../frontend/src/lib/api.mjs';
+import { detailPage } from '../frontend/src/pages/claim-detail.mjs';
+import { reimbursementStatus } from '../frontend/src/components/status.mjs';
 
 test('concise receipt result keeps approved and actually paid money distinct without audit copy',()=>{
   const claim={id:'receipt-id',claimant:'Committee',processing:'assessed',requested_sen:9500,eligible_sen:6000,paid_sen:0,unpaid_sen:6000,payment:{status:'pending',amount_sen:6000,sync:'not_required'},receipt:{items:[{id:'one',description:'Printing',quantity:1,unit_sen:6000,line_sen:6000,net_sen:6000},{id:'two',description:'Headphones',quantity:1,unit_sen:3500,line_sen:3500,net_sen:3500}]},assessment:{items:[{item_id:'one',decision:'accepted',reason:'Approved printing explanation must not appear.'},{item_id:'two',decision:'rejected',reason:'Headphones are not part of the event.'}]}};

@@ -1,40 +1,88 @@
-# Menjalankan Gantiin di Windows
+# Panduan menjalankan dan mencoba Gantiin
 
-Gunakan PowerShell. Node.js yang diperlukan adalah versi 24.16 atau lebih baru dalam seri 24.
+Panduan Inggris untuk juri tersedia di [README](README.md). Kode utama berada di `backend/` dan `frontend/`; semua npm command dijalankan dari folder utama Gantiin.
 
-## Jalankan versi Sandbox yang sudah dikonfigurasi
+## Website dan akun juri
+
+Website: https://gantiin.onrender.com/
+
+Website baru dapat memakai akun berikut setelah database Sandbox dipindahkan ke Render. Deployment kode saja tidak memindahkan akun dan riwayat. Jika `/api/session` menampilkan `initialized:false`, selesaikan [pemindahan database](docs/operations/deployment.md), bukan setup/seed ulang.
+
+| Peran | Email website | Password website |
+|---|---|---|
+| Treasurer | `treasurer@example.test` | `Treasurer` |
+| CMT 1 | `cmt.one@example.test` | `CMT1` |
+| CMT 2 | `cmt.two@example.test` | `CMT2` |
+
+Treasurer memilih tab Treasurer dan memasukkan password saja. Committee memilih tab Committee, lalu email dan password. Password wajib terisi dan maksimal 128 karakter, tanpa syarat panjang minimum/kompleksitas.
+
+Untuk tombol PayPal, gunakan akun **PayPal Sandbox** berikut pada halaman login resmi PayPal:
+
+| Peran | Email PayPal Sandbox | Password PayPal Sandbox |
+|---|---|---|
+| Treasurer / Business | `sb-qwvxj53786518@business.example.com` | `8*ZEj).9` |
+| CMT 1 | `sb-ncudc53769756@personal.example.com` | `Bbe}K9@a` |
+| CMT 2 | `sb-hekyu53769840@personal.example.com` | `K/MaEhX5` |
+
+Pemilik mengizinkan akun uji ini dicantumkan untuk juri. Akun PayPal dan website adalah dua jenis login berbeda. Identitas PayPal harus cocok dengan penerima/pengirim yang terdaftar di database. Consent Treasurer sebelumnya belum terselesaikan; gunakan password website bila alur provider tersebut belum tersedia. API secret dan Google JSON tetap privat.
+
+## Struk sintetis dan langkah demo
+
+[Unduh ZIP empat struk](https://github.com/MaximillionCang/Gantiin/raw/refs/heads/main/demo/campus-career-day/receipts.zip), lalu ekstrak. PNG juga tersedia di [folder receipts](demo/campus-career-day/receipts/). Semua contoh fiktif, bukan pembelian nyata.
+
+1. Login Treasurer, periksa Overview, History, spreadsheet dan Event Policy.
+2. Contoh struk memakai kebijakan [Campus Career Day](demo/campus-career-day/EVENT.md). Jangan mengubah kebijakan acara aktif hanya untuk mencoba contoh yang tidak cocok.
+3. Login Committee, pilih Submit Receipt dan unggah satu PNG yang belum pernah diajukan.
+4. Periksa keputusan per barang, Why rejected, Receipt total dan Reimbursed.
+5. History Committee hanya menampilkan pengajuan sendiri; Treasurer melihat semua. Pembayaran yang telah dikonfirmasi dicatat ke Google Sheets.
+
+| Contoh | Total struk | Ekspektasi eligible sesuai kebijakan contoh |
+|---|---|---|
+| Printing and registration | RM239.90 | RM200.00 |
+| Refreshments | RM465.00 | RM440.00 |
+| Room preparation | RM184.00 | RM46.00 |
+| Committee dinner | RM217.50 | RM0.00 |
+
+Ekspektasi itu label buatan manusia, bukan jaminan akurasi AI. Pembayaran tergantung saldo terbaru dan penerima terverifikasi. File struk yang sama hanya dapat diajukan sekali per acara. Jika sudah ada di History, lihat hasil sebelumnya atau gunakan contoh lain; jangan hapus jurnal agar duplikat bisa dibayar lagi.
+
+## Menjalankan Sandbox lokal di Windows
+
+Pasang Node.js minimal 24.16 dalam seri 24. Buka PowerShell dari folder Gantiin, lalu:
 
 ```powershell
-Set-Location -LiteralPath 'C:\Users\USER\Downloads\Hackathon\Gantiin'
-$env:Path = "$(Join-Path (Get-Location) '.cache\tools\node-v24.22.3-win-x64');$env:Path"
+npm.cmd ci
 npm.cmd run start:sandbox
 ```
 
-Buka alamat yang dicetak terminal. Port bawaan adalah [http://localhost:3000](http://localhost:3000); konfigurasi lokal dapat memakai port berbeda. Biarkan terminal tetap terbuka. Tekan `Ctrl+C` untuk menghentikan server. Jangan jalankan dua server menggunakan database yang sama.
+Gunakan `.env`, `.env.sandbox`, database dan Google JSON yang sudah disiapkan. Sesuaikan GOOGLE_APPLICATION_CREDENTIALS dengan lokasi file di laptop yang sedang digunakan. File privat dan node_modules tidak ikut GitHub; dependensi dipasang melalui npm ci. Tidak perlu setup/seed untuk database yang sudah memiliki akun.
 
-Jika dependensi belum terpasang, jalankan `npm.cmd ci` satu kali sebelum menyalakan server. Pertahankan file `.env` dan `.env.sandbox` yang sudah ada. Jangan menjalankan setup atau seed untuk sekadar membuka aplikasi karena data acara sudah tersedia.
+Buka alamat yang dicetak terminal, biasanya http://localhost:3000. Biarkan terminal terbuka; Ctrl+C menghentikan server. Jangan menjalankan dua server terhadap database yang sama.
 
-## Jika perlu login PayPal melalui HTTPS
-
-Hentikan server sebelumnya dengan `Ctrl+C`, lalu jalankan:
+Untuk menguji login PayPal melalui HTTPS, hentikan server sebelumnya lalu:
 
 ```powershell
 npm.cmd run start:https
 ```
 
-Perintah ini memerlukan `cloudflared`. Terminal mencetak Website dan PayPal Return URL. Buka Website, lalu sesuaikan Return URL di konfigurasi aplikasi PayPal Sandbox dengan nilai yang dicetak. Alamat tunnel berubah pada setiap proses baru. Terminal dan laptop harus tetap menyala. Tunnel ini hanya untuk pengujian sementara.
+Cloudflared harus tersedia di PATH atau CLOUDFLARED_PATH. Gunakan Website dan PayPal Return URL yang dicetak. Hostname berubah setiap menjalankan tunnel baru; simpan Return URL baru pada aplikasi PayPal Sandbox yang cocok. Tidak perlu cloudflared pada Render.
 
-Jika muncul pesan port sedang digunakan, hentikan proses Gantiin sebelumnya dari terminalnya sendiri. Jangan menghapus database atau menutup semua proses Node.
+## Menjalankan simulasi tanpa API key
 
-## Preferensi tampilan
+Ikuti bagian Isolated local simulation pada [README](README.md). Gunakan database fixture baru yang terpisah, bukan database Sandbox aktif. Setup pertama mencetak password acak untuk fixture tersebut; tabel password di atas berlaku untuk database Sandbox yang sudah disiapkan. Untuk fixture gunakan `frontend/demo/mixed.png`, bukan empat contoh OCR di paket Campus Career Day. Simulasi tidak memanggil Gemini, Google atau PayPal.
 
-Preferensi tampilan tersedia untuk Committee dan Treasurer di **Settings > Personal preferences > Appearance**. Pilih Dark atau Light; default tetap Dark. Pilihan disimpan pada browser ini dan berlaku juga di halaman login. Pada Light, tulisan logo menjadi hitam dan simbol G tetap berwarna. Jika penyimpanan browser diblokir, pilihan hanya berlaku selama kunjungan saat ini.
+## Settings dan pemulihan
 
-## Pengaturan akun
+Klik Settings untuk membuka/menutup submenu tanpa berpindah halaman. Pilih Account > Change password atau Email. Email read-only; Committee dapat menautkan PayPal dari halaman Email. Personal preferences > Appearance menyediakan Dark/Light; Dark adalah default. Pilihan disimpan di browser jika storage tersedia.
 
-Di **Settings > Account**, gunakan **Change password** untuk formulir perubahan sandi yang sudah ada. Bagian **Email** hanya menampilkan alamat akun saat ini secara read-only; tidak ada perubahan email atau tombol simpan email. Kontrol PayPal Committee tetap tersedia di halaman Email. Perubahan susunan menu tidak mengubah akun atau sandi yang tersimpan.
+Untuk reset akun biasa, operator memverifikasi identitas lalu membuat tautan:
 
-## Pemeriksaan kode
+```powershell
+node --env-file=.env --env-file=.env.sandbox scripts/password-reset.mjs EMAIL_AKUN --base-url https://ALAMAT-WEBSITE
+```
+
+Tautan berlaku 15 menit dan sekali pakai. Bagikan secara pribadi; tidak ada layanan email otomatis. Jangan masukkan tautan reset, API key, Google JSON, .env atau database ke GitHub.
+
+## Pemeriksaan dan Render
 
 ```powershell
 npm.cmd run check
@@ -42,30 +90,8 @@ npm.cmd test
 npm.cmd run test:e2e
 ```
 
-Tes memakai data percobaan terpisah. Jangan memakai akun atau pembayaran sungguhan untuk mencoba tampilan.
+Tes memakai database sementara dan fixture/mock. Pemeriksaan tidak mengizinkan transaksi nyata. Baca [verifikasi terbaru](docs/verification/current.md).
 
-## Pemulihan sandi oleh operator
+Pada Render: Root Directory kosong, Build Command `npm ci --omit=dev`, Start Command `APP_BASE_URL="$RENDER_EXTERNAL_URL" npm start`, disk /var/data dan Google Secret File. Return URL saat ini: https://gantiin.onrender.com/api/paypal/callback. Lihat [deployment](docs/operations/deployment.md) untuk konfigurasi dan pemindahan database.
 
-Setelah memverifikasi identitas pemilik akun, operator dapat menjalankan perintah berikut dengan email akun dan alamat HTTPS aplikasi yang benar:
-
-```powershell
-node --env-file=.env --env-file=.env.sandbox scripts/password-reset.mjs EMAIL_AKUN --base-url https://ALAMAT-WEBSITE
-```
-
-Bagikan tautan hasilnya secara pribadi hanya kepada pemilik akun tersebut. Tautan berlaku 15 menit dan sekali pakai. Tautan baru menggantikan tautan sebelumnya. Tidak ada layanan pengiriman email otomatis. Jangan menyimpan tautan, sandi atau file konfigurasi pribadi di GitHub.
-
-## Konfigurasi laptop ini
-
-Node 24.22.3 dan npm 11.19.1 terpasang secara portabel di `.cache/tools/node-v24.22.3-win-x64`; cloudflared ada di `.cache/tools/cloudflared/cloudflared.exe`. Folder Node/npm sudah ditambahkan ke PATH pengguna Windows. Tutup dan buka kembali terminal setelah perubahan ini; bila memakai terminal VS Code, mulai ulang VS Code. Baris `$env:Path` di atas juga dapat dipakai untuk terminal lama yang belum menerima PATH baru. Folder `.cache` diabaikan Git; jangan hapus subfolder tools jika masih menggunakan perintah ini.
-
-Gunakan `start:sandbox` atau `start:https` untuk database yang disalin, `data/runtime/sandbox.sqlite`. Perintah `npm.cmd start` hanya memuat `.env`, yang masih merupakan profil fixture terpisah dan menunjuk database lain yang belum ada. Jangan gunakan perintah itu untuk membuka data Sandbox. Tidak perlu setup/seed. Kredensial Google memakai `C:/Users/USER/.gantiin/google_sheets.json`.
-
-Dependensi sudah dipasang dengan `npm.cmd ci`; Chromium untuk pengujian dipasang dengan `npx.cmd playwright install chromium`. Ulangi instalasi dependensi setelah lockfile berubah, saat server berhenti. Tidak perlu menyalin node_modules dari laptop lain.
-
-Untuk PayPal, hentikan server sebelumnya, jalankan `npm.cmd run start:https`, lalu baca baris **Website** dan **PayPal Return URL** di terminal. Pada PayPal Developer Dashboard, buka aplikasi **Sandbox** yang sesuai dengan client ID lokal, aktifkan Login with PayPal bila diperlukan, dan simpan Return URL persis seperti yang dicetak, termasuk `/api/paypal/callback`. Jika akun meminta persetujuan atau login, selesaikan langsung di halaman PayPal dengan akun Sandbox yang sesuai. Pengujian otomatis tidak membuktikan consent berhasil. Tekan Ctrl+C untuk berhenti; jika Windows menanyakan `Terminate batch job (Y/N)?`, jawab Y.
-
-Database lokal tidak tersinkron otomatis dengan laptop anggota tim lain. Sebelum mengganti salinan database, hentikan aplikasi. Gunakan backup SQLite yang konsisten dari sumber yang benar: SQLite backup API / VACUUM INTO ke file baru, atau tutup semua koneksi pada sumber dan pastikan WAL sudah di-checkpoint sebelum menyalin. Menyalin hanya `.sqlite` saat transaksi masih berada di `-wal` dapat kehilangan data; jangan mengganti file database yang sedang terbuka.
-
-Akses Google read-only, skema, proteksi, formula dan rekonsiliasi penuh dengan jurnal lokal berhasil diverifikasi. Pemeriksaan awal sempat menemukan perbedaan `item_id` pada baris 2 tab **Reimbursed Items**; perbedaan tersebut tidak ada pada pembacaan ulang dan validasi penuh berikutnya lulus. Pemeriksaan ini tidak mengubah database maupun spreadsheet, sehingga penyebab perubahan hasil tidak dipastikan. Jika konflik muncul lagi, bandingkan jurnal otoritatif dengan spreadsheet sebelum memproses klaim baru; jangan menimpa data agar pemeriksaan lulus.
-
-Verifikasi laptop, 12 November 2026: syntax/copy check 64 modul lulus, 113/113 tes backend lulus, 25/25 tes browser lulus dalam satu run penuh. Tes memakai database sementara serta fixture/mock terpisah. Startup lokal dan HTTPS diuji dengan homepage serta /api/session HTTP 200. Autentikasi token PayPal Sandbox dan metadata kedua model Gemini berhasil; consent login PayPal, inference berbayar, pembayaran dan penulisan spreadsheet tidak dijalankan. Semua proses pengujian dihentikan. Catatan akun, acara, klaim, pembayaran dan audit tetap sama. Backup konsisten sebelum startup tersimpan lokal di .cache/backups.
+Database antar laptop tidak tersinkron otomatis. Gunakan backup SQLite konsisten; jangan menyalin hanya .sqlite ketika transaksi masih ada di WAL dan jangan menimpa database yang sedang terbuka. Setelah masa akses juri selesai, simpan backup sebelum menghapus layanan/disk berbayar. Mematikan auto-deploy tidak menghentikan biaya server aktif.

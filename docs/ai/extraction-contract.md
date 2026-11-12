@@ -1,6 +1,6 @@
 # Receipt extraction contract
 
-Current code: apps/api/src/ai/extraction.mjs, schemas/extraction.mjs and prompts/extraction.mjs. LangChain ChatGoogle uses separate SystemMessage/HumanMessage evidence and withStructuredOutput(method=jsonSchema), with no tools. One shared API key, explicit role model, one maximum transport retry and a 45-second whole-call deadline. No automatic fixture fallback. Missing authorization/configuration fails before model construction.
+Current code: backend/src/ai/extraction.mjs, schemas/extraction.mjs and prompts/extraction.mjs. LangChain ChatGoogle uses separate SystemMessage/HumanMessage evidence and withStructuredOutput(method=jsonSchema), with no tools. One shared API key, explicit role model, one maximum transport retry and a 45-second whole-call deadline. No automatic fixture fallback. Missing authorization/configuration fails before model construction.
 
 Raw extraction preserves readable/issues, merchant/date_text (nullable), original source_text, visible currency/currency_source_text, total_sen/total_source_text and items in printed order. Unknown values stay null, not invented. Essential currency, lines and printed total must be readable for downstream validation. The actual printed goods total is used, never cash tender/change.
 

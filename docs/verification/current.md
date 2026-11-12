@@ -1,5 +1,8 @@
 # Current verification
 
+Latest: [backend/frontend reorganization and judge guide](source-layout.md), 12 November 2026. Syntax 67 modules; backend 116/116; full browser 32/32 (1.8 minutes). These results supersede earlier layout/counts below. Remote database migration remains pending.
+
+
 ## Teammate merge verification
 
 12 November 2026: integrated incoming 4186319 with local performance/password snapshot c134266. Syntax checks pass for 68 modules; 116/116 backend tests and 32/32 browser journeys pass (2.1 minutes). Tests cover both themes, role-specific login, Account password/email subpages, read-only email, private browser storage failures, the single Settings disclosure, fresh payment authorization, concurrent page loads and short-password support. Desktop login/mobile Email screenshots inspected. API backend matches the local backup except for the required new asset allowlist entries; private configuration hashes are unchanged. No owner data or external AI/payment/sheet action was changed or executed. Earlier per-revision evidence below is historical.

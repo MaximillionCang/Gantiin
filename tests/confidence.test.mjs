@@ -1,20 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { Store } from '../apps/api/src/db.mjs';
-import { Service } from '../apps/api/src/service.mjs';
-import { adapters } from '../apps/api/src/adapters/index.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { Service } from '../backend/src/service.mjs';
+import { adapters } from '../backend/src/adapters/index.mjs';
+import { configuration } from '../backend/src/config.mjs';
 import { seed } from '../scripts/setup.mjs';
-import { extractionSchema } from '../apps/api/src/ai/schemas/extraction.mjs';
-import { assessmentSchema } from '../apps/api/src/ai/schemas/assessment.mjs';
+import { extractionSchema } from '../backend/src/ai/schemas/extraction.mjs';
+import { assessmentSchema } from '../backend/src/ai/schemas/assessment.mjs';
 import { extracted } from './helpers/ai.mjs';
 
 function harness(t,{ocr=0.98,decider=0.98}={}) {
   const store=new Store();seed(store,{demo:true,password:'Synthetic-only-password42',funding:10000});t.after(()=>store.close());
   const config=configuration({BUDGET_SOURCE:'fixture'}),providers=adapters(store,config),service=new Service(store,providers,config);
   const cmt=store.users().find(user=>user.role==='cmt');
-  const claim=service.createClaim(cmt,{receipt_base64:readFileSync('apps/web/demo/mixed.png').toString('base64'),context:'Event printing and registration'},crypto.randomUUID());
+  const claim=service.createClaim(cmt,{receipt_base64:readFileSync('frontend/demo/mixed.png').toString('base64'),context:'Event printing and registration'},crypto.randomUUID());
   const extract=providers.ai.extract.bind(providers.ai),assess=providers.ai.assess.bind(providers.ai);
   const scores={ocr,decider};let extracts=0,assessments=0;
   providers.ai.extract=async(...args)=>{extracts++;return {...await extract(...args),confidence:scores.ocr};};

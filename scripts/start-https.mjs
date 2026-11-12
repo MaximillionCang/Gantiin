@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { configuration } from '../apps/api/src/config.mjs';
-import { createApplication } from '../apps/api/src/server.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { createApplication } from '../backend/src/server.mjs';
 
 const tunnelOrigin=/https:\/\/[a-z0-9-]+\.trycloudflare\.com\b/;
 const launchTunnel=config=>spawn(process.env.CLOUDFLARED_PATH||'cloudflared',[

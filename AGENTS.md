@@ -1,5 +1,9 @@
 # Working on Gantiin
 
+## Current source layout
+
+Application code is split into backend/ and frontend/ at the root. Run all npm commands from the repository root; package.json starts backend/src/server.mjs. The backend serves only exact allowlisted frontend files. Operator scripts, tests, docs and active demo/fixture inputs remain shared supporting folders. Private .env files, Google credentials, data/runtime and backups remain untouched and ignored. The old apps/api and apps/web paths are historical. The unused event-brief component/static route/CSS were removed after reference inspection. README and PANDUAN-RUN.md are the current judge-access/run guides, including owner-authorized website/PayPal Sandbox credentials and synthetic receipt download links.
+
 ## Current owner direction, 12 November 2026
 
 Latest owner changes: Settings is one disclosure button (text/icon/chevron are one target). Expanding it never navigates; only selecting a submenu opens a Settings page. The owner explicitly requested simple website passwords without minimum-length/complexity checks. Accept nonempty passwords up to 128 characters across Account, member creation and one-use recovery; preserve hashing, rate limits, session/origin checks and one-use reset grants. The three prepared Sandbox website passwords were changed at the owner's request and website/PayPal Sandbox judge credentials were explicitly authorized for README publication. These are not API secrets. Keep private .env, Google credentials and database backups ignored.

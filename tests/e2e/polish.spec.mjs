@@ -19,7 +19,7 @@ async function scan(page) {
 }
 test('View and the upper-left Back arrow preserve CMT filters and lead to the actual receipt',async({page})=>{
   await page.setViewportSize({width:1440,height:1000});await login(page);
-  await page.getByLabel('Receipt image').setInputFiles('apps/web/demo/printing.png');await page.getByRole('button',{name:'Submit',exact:true}).click();
+  await page.getByLabel('Receipt image').setInputFiles('frontend/demo/printing.png');await page.getByRole('button',{name:'Submit',exact:true}).click();
   await expect(page.locator('.result-status')).toContainText('Paid',{timeout:15000});
   await page.getByRole('link',{name:'Back to history',exact:true}).click();
   await page.getByLabel('Find a submission').fill('CMT One');await page.getByLabel('Sort by').selectOption('amount-asc');await page.getByLabel('Payment status').selectOption('succeeded');

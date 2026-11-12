@@ -1,8 +1,8 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { extractReceipt } from '../apps/api/src/ai/extraction.mjs';
-import { assessItems } from '../apps/api/src/ai/decider.mjs';
-import { validatePolicy, validateReceipt } from '../apps/api/src/domain.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { extractReceipt } from '../backend/src/ai/extraction.mjs';
+import { assessItems } from '../backend/src/ai/decider.mjs';
+import { validatePolicy, validateReceipt } from '../backend/src/domain.mjs';
 
 if(!process.argv.includes('--allow-ai-usage')) {
   console.error('This check uses Gemini API quota. Run npm.cmd run ai:check -- --allow-ai-usage to test one sample receipt.');

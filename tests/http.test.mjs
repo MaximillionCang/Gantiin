@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { Store } from '../apps/api/src/db.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { adapters } from '../apps/api/src/adapters/index.mjs';
-import { createApplication } from '../apps/api/src/server.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { adapters } from '../backend/src/adapters/index.mjs';
+import { createApplication } from '../backend/src/server.mjs';
 import { seed } from '../scripts/setup.mjs';
-import { digest, passwordHash } from '../apps/api/src/domain.mjs';
+import { digest, passwordHash } from '../backend/src/domain.mjs';
 import { extracted } from './helpers/ai.mjs';
 
 async function harness(t,{oauth=false}={}) {
@@ -26,7 +26,7 @@ async function harness(t,{oauth=false}={}) {
 test('AC-01/02/03: role sessions, account creation, direct claim/file ID isolation and no browser role escalation',async t=>{
   const h=await harness(t);const one=await h.login('cmt.one@example.test'),two=await h.login('cmt.two@example.test'),treasurer=await h.login('treasurer@example.test');
   assert.equal(one.user.role,'cmt');assert.equal(treasurer.user.role,'treasurer');
-  const receipt=readFileSync('apps/web/demo/mixed.png').toString('base64');
+  const receipt=readFileSync('frontend/demo/mixed.png').toString('base64');
   const created=await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'test-http-key'},data:{receipt_base64:receipt,context:'Synthetic supplies purchased for event registration and printing.',role:'treasurer',amount_sen:1,recipient:'attacker'}});
   assert.equal(created.res.status,202);const id=created.value.id;
   assert.equal((await h.request(`/claims/${id}`,two)).res.status,404);assert.equal((await h.request(`/claims/${id}/receipt`,two)).res.status,404);
@@ -91,7 +91,7 @@ test('session cookies, CSRF, origin, expiry, logout and private response headers
   const again=await h.login('cmt.one@example.test');h.store.db.prepare('UPDATE sessions SET expires=0').run();assert.equal((await h.request('/event',again)).res.status,401);
 });
 test('receipt-only submission stores no invented note and uses actual approved references',async t=>{
-  const h=await harness(t);const one=await h.login('cmt.one@example.test');const receipt=readFileSync('apps/web/demo/mixed.png').toString('base64');
+  const h=await harness(t);const one=await h.login('cmt.one@example.test');const receipt=readFileSync('frontend/demo/mixed.png').toString('base64');
   for(const context of [null,17,'x'.repeat(3001)])assert.equal((await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'invalid-context-key'},data:{receipt_base64:receipt,context}})).res.status,400);
   let modelContext;const assess=h.providers.ai.assess;h.providers.ai.assess=async(...args)=>{modelContext=args[3];return assess.apply(h.providers.ai,args);};
   const result=await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'receipt-only-key'},data:{receipt_base64:receipt}});assert.equal(result.res.status,202);assert.equal(result.value.context,'');
@@ -104,9 +104,9 @@ test('HTTP claim result exposes exact net and item recording fields while obsole
   const h=await harness(t);const one=await h.login('cmt.one@example.test'),treasurer=await h.login('treasurer@example.test');
   assert.equal((await h.request('/event-templates',treasurer)).res.status,404);
   h.providers.ai.extract=async()=>extracted({total_sen:3600,adjustments:[{kind:'discount',description:'Coupon',source_text:'Discount -RM4.00',amount_sen:400,treatment:'subtract',scope:'receipt',item_ids:[]}]});
-  const response=await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'net-http-contract'},data:{receipt_base64:readFileSync('apps/web/demo/mixed.png').toString('base64')}});await h.service.tick();
+  const response=await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'net-http-contract'},data:{receipt_base64:readFileSync('frontend/demo/mixed.png').toString('base64')}});await h.service.tick();
   const result=(await h.request(`/claims/${response.value.id}`,one)).value;assert.equal(result.eligible_sen,3600);assert.equal(result.paid_sen,3600);assert.equal(result.item_outcomes[0].paid_sen,3600);assert.equal(result.receipt.items[0].allocated_discount_sen,400);assert.equal(result.payment.items[0].net_sen,3600);assert.equal(result.payment.sync,'synced');assert.ok(result.models.ocr);assert.ok(result.models.decider);
-  for(const path of ['/src/lib/api.mjs','/src/components/event-brief.mjs','/src/pages/claim-detail.mjs'])assert.equal((await fetch(h.config.base+path)).status,200);
+  for(const path of ['/src/lib/api.mjs','/src/components/status.mjs','/src/pages/claim-detail.mjs'])assert.equal((await fetch(h.config.base+path)).status,200);
   for(const path of ['/src/../.env','/data/runtime/gantiin.sqlite','/src/../../api/src/config.mjs'])assert.ok([401,404].includes((await fetch(h.config.base+path)).status));
 });
 test('password change checks current password and invalidates other sessions; policy uses expected version',async t=>{
@@ -147,7 +147,7 @@ test('unconfigured Sandbox metadata and server guard block submission but retain
   const h=await harness(t);h.config.mode='sandbox';h.config.googleKey='';h.config.spreadsheet='';h.config.aiKey='';h.config.paypalClient='';h.config.paypalSecret='';
   const one=await h.login('cmt.one@example.test');
   const session=await h.request('/session',one);assert.equal(session.value.mode,'sandbox');assert.deepEqual(session.value.integrations,{sheets:false,ai:false,paypal:false,recipient:false});
-  const result=await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'missing-services-key'},data:{receipt_base64:readFileSync('apps/web/demo/mixed.png').toString('base64'),context:'Synthetic event context for missing integration test.'}});
+  const result=await h.request('/claims',{method:'POST',...one,headers:{'Idempotency-Key':'missing-services-key'},data:{receipt_base64:readFileSync('frontend/demo/mixed.png').toString('base64'),context:'Synthetic event context for missing integration test.'}});
   assert.equal(result.res.status,503);assert.equal(result.value.code,'integration_not_configured');assert.equal(h.store.claims().length,0);
   const treasurer=await h.login('treasurer@example.test');assert.equal((await h.request('/members',treasurer)).res.status,200);assert.equal((await h.request('/event',treasurer)).res.status,200);
 });

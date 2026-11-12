@@ -14,7 +14,7 @@ Durable authorization stores policy/reference/assessment/receipt/model/recipient
 
 Keep the original eight Transactions columns unchanged. Add I:L: eligible_sen, unpaid_sen, policy_version, items_digest. Remaining budget continues to be exactly =C2-SUM(Transactions!D2:D), so item records do not deduct funds a second time.
 
-Add a protected **Reimbursed Items** tab with A:U headers from apps/api/src/adapters/sheets-contract.mjs:
+Add a protected **Reimbursed Items** tab with A:U headers from backend/src/adapters/sheets-contract.mjs:
 
 record_id, payment_id, claim_id, item_id, description, quantity, unit_sen, gross_sen, item_discount_sen, base_sen, allocated_tax_sen, allocated_discount_sen, net_sen, eligible_sen, paid_sen, unpaid_sen, policy_version, category, rule_ids, reference_ids, allocations.
 

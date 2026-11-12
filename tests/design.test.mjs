@@ -6,7 +6,7 @@ const rgb=hex=>hex.replace('#','').match(/../g).map(v=>parseInt(v,16));
 function luminance(hex){return rgb(hex).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);}
 function contrast(a,b){const [hi,lo]=[luminance(a),luminance(b)].sort((a,b)=>b-a);return(hi+.05)/(lo+.05);}
 for(const theme of ['dark','light'])test(`Cyan/violet ${theme} palette: actual source tokens keep readable data and perceivable controls`,()=>{
-  const css=readFileSync('apps/web/style.css','utf8');
+  const css=readFileSync('frontend/style.css','utf8');
   const base=css.match(/:root\s*\{([^}]+)\}/)[1];
   const override=theme==='light'?css.match(/:root\[data-theme="light"\]\s*\{([^}]+)\}/)[1]:'';
   const tokens=Object.fromEntries([...(base+override).matchAll(/--([a-z-]+):\s*(#[a-f0-9]{6})/gi)].map(match=>[match[1],match[2]]));

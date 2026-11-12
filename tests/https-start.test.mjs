@@ -7,9 +7,9 @@ import { mkdtempSync,rmSync,realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startHttps } from '../scripts/start-https.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { createApplication } from '../apps/api/src/server.mjs';
-import { Store } from '../apps/api/src/db.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { createApplication } from '../backend/src/server.mjs';
+import { Store } from '../backend/src/db.mjs';
 
 function harness(t){
   const folder=mkdtempSync(join(tmpdir(),'gantiin-https-'));t.after(()=>{const target=realpathSync(folder);assert.ok(target.startsWith(join(realpathSync(tmpdir()),'gantiin-https-')));rmSync(target,{recursive:true,force:true});});

@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { FixtureAI, FixturePayPal, FixtureSheets } from './adapters/fixtures.mjs';
 import { digest, invariant, passwordHash, secret, validatePolicy } from './domain.mjs';
 
-const directory=new URL('../../../demo/campus-career-day/',import.meta.url);
+const directory=new URL('../../demo/campus-career-day/',import.meta.url);
 const eventContext=JSON.parse(readFileSync(new URL('event.json',directory),'utf8'));
 const samples=new Map();
 for(const line of readFileSync(new URL('expected-results.csv',directory),'utf8').trim().split(/\r?\n/).slice(1)) {

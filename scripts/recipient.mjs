@@ -1,8 +1,8 @@
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { Store } from '../apps/api/src/db.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { email, invariant, text, now } from '../apps/api/src/domain.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { email, invariant, text, now } from '../backend/src/domain.mjs';
 
 const config=configuration();
 invariant(config.mode==='sandbox','Recipient setup is only for real Sandbox accounts. Demo recipients are seeded separately.');

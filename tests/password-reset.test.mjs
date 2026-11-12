@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Store } from '../apps/api/src/db.mjs';
-import { createApplication } from '../apps/api/src/server.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { createApplication } from '../backend/src/server.mjs';
+import { configuration } from '../backend/src/config.mjs';
 import { seed } from '../scripts/setup.mjs';
-import { issuePasswordReset,redeemPasswordReset } from '../apps/api/src/password-reset.mjs';
-import { passwordHash,passwordMatches } from '../apps/api/src/domain/core.mjs';
+import { issuePasswordReset,redeemPasswordReset } from '../backend/src/password-reset.mjs';
+import { passwordHash,passwordMatches } from '../backend/src/domain/core.mjs';
 
 const initial='Synthetic-only-password42',changed='New-private-password93';
 const token=url=>new URLSearchParams(new URL(url).hash.split('?')[1]).get('token');

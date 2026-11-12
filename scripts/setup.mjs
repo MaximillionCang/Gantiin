@@ -1,9 +1,9 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { Store } from '../apps/api/src/db.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { passwordHash, validatePolicy } from '../apps/api/src/domain.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { passwordHash, validatePolicy } from '../backend/src/domain.mjs';
 
 export function seed(store,{demo=false,password,funding=10000}={}) {
   if(store.users().length) throw new Error('Database already has accounts. Setup refuses to overwrite them.');

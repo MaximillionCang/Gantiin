@@ -14,7 +14,7 @@ No secrets belong in Git, chat, receipt text, spreadsheet cells, browser bundles
 1. Use Node 24.16+ (Node 24), npm ci, and copy .env.example to .env.
 2. Leave INTEGRATION_MODE=fixture. Run npm run seed:demo on an empty database.
 3. The seed prints separate randomly generated local passwords for treasurer@example.test, cmt.one@example.test, and cmt.two@example.test. They are synthetic identities, with one shared treasurer and two individual CMTs. The CLI saves credentials in the ignored data/runtime/initial-access.txt. Change passwords through Account and remove the note after private distribution.
-4. Run npm.cmd start and open http://localhost:3000. Upload a supplied synthetic PNG from apps/web/demo. Submission is receipt-only; no purpose/context field is requested or fabricated. net-cost.png demonstrates a shared RM10 discount and RM72 eligible net printing cost.
+4. Run npm.cmd start and open http://localhost:3000. Upload a supplied synthetic PNG from frontend/demo. Submission is receipt-only; no purpose/context field is requested or fabricated. net-cost.png demonstrates a shared RM10 discount and RM72 eligible net printing cost.
 5. All balances, extraction, assessments, sheet rows, and payout IDs in this mode are fixture simulations. A different image produces a technical extraction error rather than fabricated OCR.
 
 Entry is role-first. Treasurer asks only for the existing shared password; its stored email is not a login field. Committee retains individual email/password. Both roles support official PayPal login when configured. No new credentials or database reset are needed for the UI revision.

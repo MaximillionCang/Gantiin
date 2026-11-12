@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { configuration } from '../apps/api/src/config.mjs';
-import { issuePasswordReset } from '../apps/api/src/password-reset.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { issuePasswordReset } from '../backend/src/password-reset.mjs';
 
 const args=process.argv.slice(2);
 if(args.includes('--help')||!args.length){

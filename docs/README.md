@@ -14,4 +14,4 @@
 | Privacy | [Access control](security/access-control.md), [data use](policies/data-use.md), [reimbursement](policies/reimbursement.md) |
 | Operations | [Runbook](operations/runbook.md), [deployment](operations/deployment.md) |
 
-Executable LangChain prompts live in apps/api/src/ai/prompts/; documentation is not the runtime prompt. OCR extracts evidence, Decider returns item decisions/reasons, and the application validates financial authority. Current owner requirements supersede historical descriptions within retained backend records.
+Executable LangChain prompts live in backend/src/ai/prompts/; documentation is not the runtime prompt. OCR extracts evidence, Decider returns item decisions/reasons, and the application validates financial authority. Current owner requirements supersede historical descriptions within retained backend records.

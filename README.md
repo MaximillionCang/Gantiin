@@ -1,20 +1,17 @@
 # Gantiin
 
-Event reimbursements in MYR. OCR reads the receipt; a separate Gemini Decider checks each item against the Treasurer's event name/description and approved spreadsheet evidence. Server validation controls money, recipients and automatic PayPal Sandbox payments.
+Gantiin reduces event treasurers' manual reimbursement work. Gemini reads receipt images and assesses each item's event eligibility. The server validates money and available funds, pays eligible expenses through PayPal Sandbox, and records confirmed results in Google Sheets.
 
-## Judge access: PayPal Sandbox
+## Start here: judges
 
-These are PayPal Sandbox test accounts provided for judging. Choose the matching role on the Gantiin login screen, select PayPal, and enter the Sandbox credentials on PayPal's official Sandbox sign-in page.
+- Website: [gantiin.onrender.com](https://gantiin.onrender.com/).
+- [Download all four synthetic receipts](https://github.com/MaximillionCang/Gantiin/raw/refs/heads/main/demo/campus-career-day/receipts.zip).
+- [Browse individual PNG receipts](demo/campus-career-day/receipts/), [event policy](demo/campus-career-day/EVENT.md), [expected item decisions](demo/campus-career-day/expected-results.csv).
+- [Windows instructions](PANDUAN-RUN.md), [Render setup/data migration](docs/operations/deployment.md).
 
-| Role | PayPal Sandbox email | Sandbox password |
-|---|---|---|
-| Treasurer / Business sender | `sb-qwvxj53786518@business.example.com` | `8*ZEj).9` |
-| Committee member 1 (CMT 1) | `sb-ncudc53769756@personal.example.com` | `Bbe}K9@a` |
-| Committee member 2 (CMT 2) | `sb-hekyu53769840@personal.example.com` | `K/MaEhX5` |
+**Deployment prerequisite:** the hosted service needs the prepared Sandbox database imported before the accounts below can work. A successful deploy alone does not transfer accounts, receipts or the payment journal. `/api/session` must report `initialized: true`; provider configuration flags alone do not prove connectivity. Treasurer PayPal consent has previously remained unresolved; website password login is available after the database import.
 
-These accounts use simulated Sandbox funds. They are PayPal credentials, not Gantiin email/password sign-in credentials. PayPal sign-in must be enabled, its Return URL must match the current website, and each identity must match the recipient/sender assignment in the application's database. Treasurer PayPal consent has previously remained unresolved; use the operator-provided Gantiin Treasurer password if that provider flow is still unavailable. Do not publish real-account credentials, API secrets, or private configuration files.
-
-### Gantiin website sign-in
+### Gantiin website credentials
 
 | Role | Website email | Website password |
 |---|---|---|
@@ -22,50 +19,98 @@ These accounts use simulated Sandbox funds. They are PayPal credentials, not Gan
 | CMT 1 | `cmt.one@example.test` | `CMT1` |
 | CMT 2 | `cmt.two@example.test` | `CMT2` |
 
-For Treasurer, choose the Treasurer tab and enter the password only. For Committee, choose Committee and enter the matching website email and password. These accounts belong to the owner's prepared Sandbox database; a fresh database creates its own credentials. Password forms have no minimum-length or complexity requirement; passwords must be nonempty and at most 128 characters. These deliberately public accounts are for judging this Sandbox prototype.
+Choose **Treasurer** and enter its password only. Choose **Committee** and enter the corresponding email and password. These deliberately public judging credentials belong to the prepared Sandbox database. A fresh fixture database generates its own passwords. Passwords must be nonempty, at most 128 characters, with no minimum-length or complexity requirement.
 
-## Local startup
+### PayPal Sandbox credentials
 
-Use Node 24.16+ in the Node 24 line. From this folder:
+Choose the matching role in Gantiin, select PayPal, and enter these credentials only on PayPal's official Sandbox sign-in page:
+
+| Role | PayPal Sandbox email | PayPal Sandbox password |
+|---|---|---|
+| Treasurer / Business sender | `sb-qwvxj53786518@business.example.com` | `8*ZEj).9` |
+| CMT 1 | `sb-ncudc53769756@personal.example.com` | `Bbe}K9@a` |
+| CMT 2 | `sb-hekyu53769840@personal.example.com` | `K/MaEhX5` |
+
+These are Sandbox test accounts with simulated funds, provided by the owner for judging. They are separate from website credentials. Login must be enabled and each identity must match its preassigned sender/recipient. The Return URL for the current hosted service is `https://gantiin.onrender.com/api/paypal/callback`. API keys, client secrets and Google credentials are not published.
+
+### Judge walkthrough
+
+1. Download and extract the receipt ZIP. All four images are synthetic, with fictional merchants.
+2. Sign in as Treasurer. Inspect **Overview**, the spreadsheet shortcut, **History**, and the saved **Event Policy**. The examples assume the supplied Campus Career Day event description and approved references.
+3. Sign out, choose Committee, and sign in as CMT 1 or CMT 2.
+4. Open **Submit Receipt**, select an unused PNG, and submit. This starts the configured AI and automatic Sandbox reimbursement flow.
+5. On **Receipt result**, inspect item decisions, **Why rejected**, Receipt total and Reimbursed. Reimbursed means confirmed paid, not merely eligible.
+6. Open **History**, then sign in as Treasurer to inspect all submissions. Committee members see only their own claims. Confirmed payouts and item records synchronize to Google Sheets.
+7. Try **Settings > Account > Change password / Email** and **Personal preferences > Appearance**. Email is read-only. Settings expands without navigating until a submenu is selected. Dark is the default; Light is saved on this browser.
+
+| Receipt | Printed total | Expected eligible under the supplied policy |
+|---|---|---|
+| `01-printing-and-registration.png` | RM239.90 | RM200.00 |
+| `02-refreshments.png` | RM465.00 | RM440.00 |
+| `03-room-preparation.png` | RM184.00 | RM46.00 |
+| `04-committee-dinner.png` | RM217.50 | RM0.00 |
+
+These are human-authored expected labels, not accuracy claims. Payment depends on the current available budget and verified recipient. An identical receipt file can be submitted only once per event; if a sample is already in History, inspect that record or choose an unused sample. Duplicate protection is intentional. Do not reset financial history just to repeat a demonstration.
+
+## Run locally
+
+Requirements: Node.js 24.16+ within Node 24, npm, and cloudflared only for temporary HTTPS testing. Run commands from the repository root.
 
 ```powershell
 npm.cmd ci
-npm.cmd start
+npm.cmd run start:sandbox
 ```
 
-Open http://localhost:3000 with your existing credentials. Keep the populated .env; use .env.example only for a new installation. Do not reseed existing accounts. After a backend update, stop the old server normally, start it again and hard refresh the browser.
+This uses the existing private `.env`, `.env.sandbox` and Sandbox SQLite database. It requires the matching Google service-account JSON, spreadsheet access, Gemini configuration and PayPal Sandbox configuration. Do not reseed an existing database. The private files are intentionally absent from GitHub; `.env.example` documents configuration names.
 
-The public login has no Try demo entry. Automated tests retain an isolated Committee demo with local simulated providers and a separate database. Its sample/reset controls never change the main spreadsheet or call Gemini/PayPal.
-
-The balance reads Google Sheets by default. An empty/unavailable sheet shows Unavailable, never a sample RM100. The owner has now prepared a Sandbox demo spreadsheet with RM1,776 funding and approved receipt references. Its RAB table records RM686 already spent outside Gantiin and RM1,090 available; the protected reimbursement budget uses that remaining allocation. the Demo tab forecasts all three eligible claims fully covered. Its Demo tab previews payments; only real confirmed Sandbox results belong in Transactions. Fixture payouts remain disabled against a Google budget.
-
-For the owner's prepared Sandbox database, stop the existing server normally and use `npm.cmd run start:sandbox`. This reads `.env` first, then the private `.env.sandbox` mode/database overrides. Existing account emails and current password hashes were preserved. It does not authorize AI usage, confirm funding or enable PayPal login. See [Sandbox preparation](docs/engineering/sandbox-ready.md) for the remaining checks.
-
-## Project map
-
-- [Requirements](docs/product/PRD.md), [current status](docs/status.md), [folder map](docs/engineering/folders.md)
-- [Setup](docs/engineering/development.md), [integrations](docs/engineering/integrations.md), [verification](docs/verification/current.md)
-- [Design](DESIGN.md), [design system](docs/design/system.md), [documentation index](docs/README.md)
-- [Demo event](demo/campus-career-day/EVENT.md), [receipt ZIP](demo/campus-career-day/receipts.zip), [expected results](demo/campus-career-day/expected-results.csv)
-
-Executable AI instructions: apps/api/src/ai/prompts/extraction.mjs and decider.mjs. Output schemas live beside them in ai/schemas/. Gemini uses one server-only key and configurable OCR/Decider model slots. The owner has authorized receipt processing in the prepared Sandbox profile. Never paste API keys into model-name fields or publish private configuration.
-
-## Checks
-
-OCR and Decider can be tested independently of PayPal/Sheets using one supplied synthetic receipt:
+For PayPal login during local testing, stop the server with Ctrl+C, then:
 
 ```powershell
-npm.cmd run ai:check -- --allow-ai-usage
+npm.cmd run start:https
 ```
 
-This consumes Gemini quota and writes only .cache/reports/ai-check.json. It does not enable the main app, modify .env, submit a claim or send a payout. Without the explicit flag no inference runs. One real sample is verified: 4 items, RM239.90 total, 3 accepted/1 rejected and RM200.00 eligible. The website's demo remains separate simulation.
+Open the printed Website URL and register the exact printed PayPal Return URL. Each temporary tunnel gets a different hostname. Keep the terminal open. `CLOUDFLARED_PATH` and `GOOGLE_APPLICATION_CREDENTIALS` must point to files on the current computer. Website databases on different laptops do not automatically synchronize; use one active writer against the shared financial spreadsheet.
+
+### Isolated local simulation without private API credentials
+
+On Windows, use a new dedicated fixture database:
 
 ```powershell
-npm.cmd test
+npm.cmd ci
+$env:INTEGRATION_MODE='fixture'
+$env:BUDGET_SOURCE='fixture'
+$env:DATABASE_PATH='data/runtime/judge-fixture.sqlite'
+$env:APP_BASE_URL='http://localhost:3000'
+$env:HOST='127.0.0.1'
+$env:PORT='3000'
+node scripts/setup.mjs --demo
+node backend/src/server.mjs
+```
+
+Setup runs once on an empty fixture database and prints its randomized credentials. On later runs, use only the final server command with the same environment. Setup refuses to overwrite accounts. Open localhost:3000 and upload `frontend/demo/mixed.png` to exercise simulated processing/payment. This fixture path uses its own synthetic policy and providers; it does not call Gemini, PayPal or Google. Close this terminal before returning to the prepared Sandbox profile so its fixture environment overrides do not carry across.
+
+## Structure
+
+- [backend/](backend/README.md): HTTP API, SQLite, receipt AI, money validation and provider integrations.
+- [frontend/](frontend/README.md): browser app, styles, themes and assets.
+- `scripts/`, `tests/`: operator commands and isolated verification.
+- `docs/`, `demo/`, `data/examples/`: documentation, judge receipts and active fixture inputs.
+- `data/runtime/`, `.cache/`: private data and generated evidence, ignored by Git.
+
+The old `apps/api` and `apps/web` layout has been replaced. Root npm commands and public URLs are unchanged. See [folder map](docs/engineering/folders.md) and [current verification](docs/verification/current.md).
+
+## Verification and limitations
+
+```powershell
 npm.cmd run check
+npm.cmd test
 npm.cmd run test:e2e
 ```
 
-Tests use isolated fixture stores and never load the owner's .env or send real payments. Screenshots, traces and HTML reports live under ignored .cache/reports. Financial report/balance sheet, live payouts, model training and multi-instance deployment are outside the current scope. MIT applies to repository code; supplied assets/dependencies retain their own rights.
+Tests use isolated databases and fixture/mocked providers, never the owner's `.env`, payment journal or real payouts. A separate authorized AI check is available with `npm.cmd run ai:check -- --allow-ai-usage`; it consumes Gemini quota but does not send payouts or write Google transaction rows.
 
-For HTTPS testing on this prepared installation, run npm.cmd run start:https. It starts the Sandbox website and cloudflared together in the foreground, uses the generated HTTPS origin for OAuth/cookies, and prints Website and PayPal Return URL. Keep that terminal open; Ctrl+C stops both and releases the database. Each new Quick Tunnel has a new hostname: register the new printed Return URL in PayPal before testing login and use the printed Website URL in the browser. The old temporary URL is expired. npm.cmd run start:sandbox remains local-only at localhost:3000. CLOUDFLARED_PATH in the private profile points to the verified installed CLI; other installations can provide the official CLI on PATH. Never run both server commands at once. No AI, funding or payment flag is enabled by this startup command.
+OCR extracts facts; a separate Decider assesses eligibility from event context and approved references. Both return validated structured outputs. Integer-sen arithmetic, fresh budget reads, verified recipients, idempotency and durable authorization control payment. Confidence scores are model self-assessments, not measured accuracy probabilities. Gantiin does not certify receipt authenticity, train a custom model, enable live-money payouts or support multiple active writers.
+
+One actual AI diagnostic read an RM239.90 synthetic receipt and assessed RM200 eligible across three accepted items and one rejection. A prior Sandbox journal records an RM200 confirmed/synchronized payment; it predates the confidence gate. These are limited historical evidence, not proof of every deployed flow. See [status](docs/status.md) and [verification](docs/verification/current.md).
+
+MIT applies to repository code. Supplied assets, PayPal branding and dependencies retain their respective rights.

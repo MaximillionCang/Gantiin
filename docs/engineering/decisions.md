@@ -130,7 +130,7 @@ Permintaan pemilik hanya template folder dan berkas. Implementasi aplikasi, trai
 
 - Date: 2026-11-06. Status: latest owner-authorized revision. Supersedes only ADR-011's separate selector and bounded workspace composition.
 - Login: one 460px maximum-width, 39rem-height white card. Treasurer is the left tab and Committee the right, initially active. The selected pill moves while the DOM card remains intact and only the form panel changes. Native button tabs support arrows/Home/End; password/errors clear on change and tabs disable during authentication. Server authentication behavior and stored credentials are unchanged.
-- Visual asset: owner explicitly authorized a generated quiet background. Built-in Imagegen produced apps/web/assets/login-sunset.png (1672x941). The server exposes only that explicit static asset path; receipt privacy/static allowlisting remain unchanged. The HTML image has dimensions, empty decorative alt and high fetch priority.
+- Visual asset: owner explicitly authorized a generated quiet background. Built-in Imagegen produced frontend/assets/login-sunset.png (1672x941). The server exposes only that explicit static asset path; receipt privacy/static allowlisting remain unchanged. The HTML image has dimensions, empty decorative alt and high fetch priority.
 - PayPal: show a disabled, accessibly explained Committee button until identity configuration is present; then use the existing OAuth route. No mock OAuth success and no Treasurer OAuth flow are added.
 - Workspace: remove outer rounded frame/margins and maximum width. Use fixed desktop navigation with a pinned Sign out footer and scrollable navigation on short screens. A sticky compact mobile header keeps Menu and Sign out available regardless of menu state.
 - Copy: remove repetitive headings/subtitles, sidebar identity/event labels, redundant top strip, role descriptions and How decisions work panel. Preserve form labels, actual financial outcomes, errors and policy data; keep a compact Demo/Sandbox marker and explicit Simulated connection values.
@@ -150,7 +150,7 @@ Permintaan pemilik hanya template folder dan berkas. Implementasi aplikasi, trai
 ## ADR-014: use the owner's supplied logo
 
 - Date: 2026-11-06. Status: owner explicitly requested replacing the current logo with their attached SVG.
-- Copy Gantiin Gradient Exchange Logo.svg unchanged to apps/web/assets/gantiin-logo.svg. Preserve original colors, background, vector shapes and 2172x724 dimensions; SHA-256 3e004dafcfbb2310a01d7dcab73407b5f5ca85792bf90ccf5063254efed4a5a8.
+- Copy Gantiin Gradient Exchange Logo.svg unchanged to frontend/assets/gantiin-logo.svg. Preserve original colors, background, vector shapes and 2172x724 dimensions; SHA-256 3e004dafcfbb2310a01d7dcab73407b5f5ca85792bf90ccf5063254efed4a5a8.
 - Replace the old hardcoded SVG in brandLogo() with a shared accessible image reference. Login, recovery and both Treasurer/Committee workspaces use it, with a versioned URL and proportional CSS sizing. The existing allowlisted asset route suffices; no server/auth/data changes.
 - Targeted browser checks cover asset decoding/content type, intrinsic/as-rendered ratio, desktop/mobile visibility, overflow and header controls across both roles. See docs/owner-logo-verification.md. No new behavioral tests are required for an asset-only change.
 

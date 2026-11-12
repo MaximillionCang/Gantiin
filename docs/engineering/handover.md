@@ -60,7 +60,7 @@ npm.cmd run check
 npm.cmd run test:e2e
 ```
 
-If Chromium is absent on a new machine: `npx.cmd playwright install chromium`. Existing fixture PNGs are under apps/web/demo. `node scripts/generate-receipts.mjs --file net-cost.png` regenerates only the labeled shared-discount test image. It does not modify owner artwork or initialize services.
+If Chromium is absent on a new machine: `npx.cmd playwright install chromium`. Existing fixture PNGs are under frontend/demo. `node scripts/generate-receipts.mjs --file net-cost.png` regenerates only the labeled shared-discount test image. It does not modify owner artwork or initialize services.
 
 ## Separate real-integration verification
 

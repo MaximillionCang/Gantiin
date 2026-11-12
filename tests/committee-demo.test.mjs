@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { Store } from '../apps/api/src/db.mjs';
-import { createApplication } from '../apps/api/src/server.mjs';
-import { configuration } from '../apps/api/src/config.mjs';
-import { resetCommitteeDemo } from '../apps/api/src/committee-demo.mjs';
+import { Store } from '../backend/src/db.mjs';
+import { createApplication } from '../backend/src/server.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { resetCommitteeDemo } from '../backend/src/committee-demo.mjs';
 import { seed } from '../scripts/setup.mjs';
 
 async function harness(t,{path=':memory:',mode='fixture',seeded=false,providers}={}) {
@@ -29,7 +29,7 @@ const image=()=>readFileSync('demo/campus-career-day/receipts/01-printing-and-re
 test('one-click Committee demo has one CMT, separate cookies, store, receipts and reset authorization',async t=>{
   const h=await harness(t);
   const regularResult=await h.request('/login',{method:'POST',data:{email:'cmt.one@example.test',password:'Isolated-test-password42'}}),regular=h.identity(regularResult);
-  const mainClaim=await h.request('/claims',{method:'POST',...regular,key:'main-claim',data:{receipt_base64:readFileSync('apps/web/demo/printing.png').toString('base64')}});assert.equal(mainClaim.res.status,202);await h.service.tick();
+  const mainClaim=await h.request('/claims',{method:'POST',...regular,key:'main-claim',data:{receipt_base64:readFileSync('frontend/demo/printing.png').toString('base64')}});assert.equal(mainClaim.res.status,202);await h.service.tick();
   const primary={users:h.store.users(),event:h.store.setting('event'),sheet:h.store.setting('fixture_sheet'),claims:h.store.claims(),payments:h.store.payments()};
   assert.equal((await h.request('/demo-cmt/login',{method:'POST',data:{role:'treasurer'}})).res.status,400);
   assert.equal((await h.request('/demo-cmt/login',{method:'POST',data:{},origin:'https://other.invalid'})).res.status,403);

@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { configuration } from '../apps/api/src/config.mjs';
-import { aiReady, roleModels } from '../apps/api/src/ai/config.mjs';
-import { extractReceipt } from '../apps/api/src/ai/extraction.mjs';
+import { configuration } from '../backend/src/config.mjs';
+import { aiReady, roleModels } from '../backend/src/ai/config.mjs';
+import { extractReceipt } from '../backend/src/ai/extraction.mjs';
 import { extracted, mockModel } from './helpers/ai.mjs';
-import { assessItems } from '../apps/api/src/ai/decider.mjs';
-import { validateAssessment } from '../apps/api/src/domain/assessment.mjs';
+import { assessItems } from '../backend/src/ai/decider.mjs';
+import { validateAssessment } from '../backend/src/domain/assessment.mjs';
 
 const config=configuration({GEMINI_API_KEY:'synthetic-key',GEMINI_MODEL:'explicit-test-model',AI_USAGE_AUTHORIZED:'true'});
 test('shared key and role model fallback are explicit; missing/invalid resolved models disable AI',async()=>{
